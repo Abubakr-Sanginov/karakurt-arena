@@ -524,12 +524,13 @@ export function createHuman(options = {}) {
   ball(head, female ? [0.064, 0.06, 0.074] : [0.076, 0.066, 0.082], [0, -0.07, 0.028], p.skin);
   ball(head, female ? [0.038, 0.036, 0.044] : [0.05, 0.04, 0.052], [0, -0.108, 0.058], p.skin);
   for (const side of [-1, 1]) {
-    ball(head, female ? [0.024, 0.02, 0.014] : [0.034, 0.028, 0.022], [side * (female ? 0.05 : 0.056), -0.04, female ? 0.074 : 0.07], p.skin);
+    // (no separate cheek balls: they read as jowls up close; the skull and jaw carry the face)
     ball(head, [0.014, 0.03, 0.022], [side * 0.099, -0.005, 0.0], p.skinShade);
-    const socket = ball(head, [0.0185, 0.0115, 0.009], [side * 0.04, 0.026, 0.096], infected ? p.socket : p.eyeWhite, '', true);
+    const socket = ball(head, [0.0205, 0.0128, 0.009], [side * 0.04, 0.026, 0.096], infected ? p.socket : p.eyeWhite, '', true);
     if (infected) ball(head, [0.008, 0.008, 0.006], [side * 0.04, 0.025, 0.102], p.milk, '', true);
     else {
-      ball(head, [0.0085, 0.009, 0.006], [side * 0.04, 0.026, 0.103], p.eye, '', true);
+      ball(head, [0.0108, 0.0108, 0.007], [side * 0.04, 0.026, 0.1035], p.eye, '', true);
+      ball(head, [0.0032, 0.0032, 0.003], [side * 0.04 + 0.004, 0.031, 0.1095], p.white, '', true);   // catch-light: the eye reads as alive
       box(head, female ? [0.04, 0.006, 0.012] : [0.046, 0.009, 0.014], [side * 0.04, female ? 0.056 : 0.05, 0.098], p.hair, true).rotation.z = side * (female ? -0.2 : -0.1);
       if (female) {
         // Lashes: a dark lid line above each eye, with a small flick at the outer corner.
@@ -540,7 +541,7 @@ export function createHuman(options = {}) {
     socket.scale.z = 0.009;
   }
   ball(head, [0.012, 0.028, 0.02], [0, 0.0, 0.104], p.skin);
-  ball(head, [0.02, 0.016, 0.02], [0, -0.026, 0.113], p.skin);
+  ball(head, [0.016, 0.013, 0.016], [0, -0.026, 0.112], p.skin);
   if (female) {
     box(head, [0.04, 0.006, 0.007], [0, -0.062, 0.101], p.lip, true);
     box(head, [0.034, 0.007, 0.007], [0, -0.071, 0.099], p.lip, true);
