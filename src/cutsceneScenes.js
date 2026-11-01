@@ -950,7 +950,7 @@ function strangerStory(k) {
   const lev = k.model(root, 'human', { variant: 'civilian', tint: 2 });
   lev.getObjectByName('visible-carbine').visible = false;
   k.box(lev.userData.modelRig.body, [0.3, 0.36, 0.14], [0, 1.2, -0.24], k.mat(0x3a4a3a));
-  const PATH = [[-4.6, 12], [-4.6, -112]];
+  const PATH = [[-8.3, 12], [-8.3, -112]];   // far side of the pavement: the abandoned cars stand on the kerb side
   return {
     fog: { color: 0xe9bf9a, near: 45, far: 220 },
     update(time, camera) {

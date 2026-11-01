@@ -488,3 +488,19 @@ test('the stranger: his story plays, and his lines change with what happened to 
   const shown = [...app.calls].reverse().find(([name]) => name === 'setPresentation')?.[1];
   assert.equal(shown?.id, 'stranger');
 });
+
+test('the stranger walks past the abandoned cars, never through them', () => {
+  const camera = new PerspectiveCamera(58, 16 / 9, 0.08, 500);
+  const stage = createCutsceneStage('stranger');
+  for (let t = 0; t <= CUTSCENES.stranger.duration; t += 0.25) {
+    stage.update(t, camera);
+    stage.root.updateMatrixWorld(true);
+    const wrecks = [], people = [];
+    stage.root.traverse((node) => { if (node.name === 'wreck') wrecks.push(node); if (node.name === 'human-survivor') people.push(node); });
+    for (const person of people) for (const wreck of wrecks) {
+      const a = new Box3().setFromObject(wreck), x = person.position.x, z = person.position.z;
+      assert.ok(!(x > a.min.x - 0.35 && x < a.max.x + 0.35 && z > a.min.z - 0.35 && z < a.max.z + 0.35), `stranger@${t}: walks through a car at ${x.toFixed(1)}, ${z.toFixed(1)}`);
+    }
+  }
+  stage.dispose();
+});
