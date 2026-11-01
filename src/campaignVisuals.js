@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { createHuman, animateHuman } from './models.js';
+import { setAssetSkin } from './assetHumans.js';
 
 const clamp = THREE.MathUtils.clamp;
 const smooth = (x) => { const t = clamp(x, 0, 1); return t * t * (3 - 2 * t); };
@@ -7,6 +8,15 @@ const outcomes = new WeakMap();
 
 // Only rig transforms are animated. World position/yaw remain the view's property.
 export function animateHumanOutcome(root, { kind = 'none', time = 0, duration } = {}) {
+  const asset = root?.userData?.asset;
+  if (asset) {
+    // Loaded 3D people: fall backwards when shot, otherwise stand as animated.
+    const t = clamp(Number.isFinite(time) ? time / (duration > 0 ? duration : 1.5) : 0, 0, 1);
+    const fall = kind === 'death' ? smooth((t - 0.05) / 0.5) : 0;
+    asset.model.rotation.x = -Math.PI * 0.5 * fall + (kind === 'death' ? 0 : asset.model.rotation.x);
+    asset.model.position.y = 0.08 * fall;
+    return;
+  }
   const rig = root?.userData?.modelRig;
   if (rig?.kind !== 'human') return;
   let pose = outcomes.get(root);
@@ -469,13 +479,20 @@ function makeInfected(k, parent, person, index) {
     }
   });
   model.getObjectByName('visible-carbine').visible = false;
-  model.getObjectByName('tailored-jacket').material.color.setHex(GOWNS[index % GOWNS.length]);
+  if (!model.userData.asset) model.getObjectByName('tailored-jacket').material.color.setHex(GOWNS[index % GOWNS.length]);
   root.add(model);
-  return { root, model, rig: model.userData.modelRig, phase: index * 2.17, id: person.id, dead: false, deathTime: 0 };
+  return { root, model, rig: model.userData.modelRig, phase: index * 2.17, id: person.id, dead: false, deathTime: 0, calm: false, index };
 }
 
 function animateInfected(person, time) {
   const t = time + person.phase, { rig } = person;
+  if (person.model.userData.asset) {
+    // Calmed people put on an ordinary survivor's skin; the rest keep shuffling in place.
+    setAssetSkin(person.model, person.calm ? 'survivorMaleB' : person.index % 2 ? 'zombieC' : 'zombieA');
+    animateHuman(person.model, t, false);
+    if (person.calm) person.model.userData.asset.model.rotation.set(0, Math.sin(t * 0.2) * 0.05, 0);
+    return;
+  }
   animateHuman(person.model, 0, false);
   if (person.calm) {
     // Calmed: upright, head lifted, arms hanging, slow breathing. No more scratching and twitching.

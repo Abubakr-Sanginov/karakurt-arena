@@ -449,8 +449,13 @@ function bone(parent, a, b, radius, surface, stretch = 1.1, depth = 1) {
  * variant: hero | medic | doctor | infected | civilian. All variants share one skeleton.
  * Limbs are long tapered ellipsoids with small joints, so silhouettes read as people rather than blocks.
  */
+// Optional replacement for the infected: loaded 3D people (assetHumans.js). Without it the built-in procedural infected are used.
+let assetFactory = null, assetAnimator = null;
+export function registerInfectedFactory(factory, animator) { assetFactory = factory; assetAnimator = animator; }
+
 export function createHuman(options = {}) {
   const variant = options.variant || 'hero';
+  if (variant === 'infected' && assetFactory) { const person = assetFactory(options); if (person) return person; }
   const human = new THREE.Group();
   human.name = 'human-survivor';
   human.userData.variant = variant;
@@ -706,6 +711,7 @@ const smoothstep = (x) => { const t = Math.min(1, Math.max(0, x)); return t * t 
  * hurt (0..1 flinch), dash (0..1 lunge), relaxed (swinging arms instead of a two-handed grip).
  */
 export function animateHuman(group, time, moving, options = {}) {
+  if (group?.userData?.asset) { assetAnimator?.(group, Number.isFinite(time) ? time : 0, moving); return; }
   const rig = group?.userData?.modelRig;
   if (rig?.kind !== 'human') return;
   time = Number.isFinite(time) ? time : 0;
