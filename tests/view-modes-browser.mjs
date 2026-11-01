@@ -58,31 +58,6 @@ export async function checkViewModeMenu() {
   }
 }
 
-export async function checkHorrorMenu() {
-  assert(document.body.dataset.screen === 'menu', 'Start on the main menu');
-  document.getElementById('start-button').click();
-  await nextFrame();
-  document.querySelector('[data-game-mode="horror"]').click();
-  await nextFrame();
-  assert(document.body.dataset.viewMode === 'first', 'Horror forces eye-level camera');
-  assert(document.querySelector('[data-view-mode="top2d"]').disabled, 'Top-down is unavailable in horror');
-  assert(document.querySelector('[data-view-mode="third"]').disabled, 'Third-person is unavailable in horror');
-  assert(document.getElementById('view-continue').disabled, 'Entry needs explicit consent');
-  assert(!/паук|поражен|проигр|скример/i.test(document.getElementById('horror-warning').textContent), 'Do not spoil the surprise');
-  const consent = document.getElementById('horror-consent');
-  consent.checked = true;
-  consent.dispatchEvent(new Event('change', { bubbles: true }));
-  assert(!document.getElementById('view-continue').disabled, 'Consent enables entry');
-  document.getElementById('view-continue').click();
-  await nextFrame();
-  assert(document.body.dataset.screen === 'story', 'Entry still waits for story confirmation');
-  document.querySelector('#campaign-panel [data-action="menu"]').click();
-  document.getElementById('start-button').click();
-  document.querySelector('[data-game-mode="campaign"]').click();
-  document.querySelector('#view-picker [data-action="menu"]').click();
-  return { passed: true, unverified: ['Horror gameplay, sound and defeat', 'Dawn presentation', 'Pause/blur and Pointer Lock'] };
-}
-
 export const manualViewModeChecks = [
   'For each mode: Play → choose → reload → Play; selection persists, battle has not started.',
   'Confirm story, then combat. Use WASD, mouse, LMB/Space and Shift: movement, aim, hits, damage and waves must work.',

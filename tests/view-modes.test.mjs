@@ -214,30 +214,6 @@ test('escaping a captured mouse pauses once without immediately resuming', () =>
   assert.equal(app.document.body.dataset.screen, 'playing');
 });
 
-test('horror requires explicit entry, forces first person and keeps the ordinary camera preference', () => {
-  const app = mainHarness({ stored: 'top2d' });
-  app.elements['start-button'].emit('click');
-  app.gameOptions[1].emit('click');
-  assert.equal(app.document.body.dataset.viewMode, 'first');
-  assert.equal(app.options[0].disabled, true);
-  assert.equal(app.options[1].disabled, true);
-  assert.equal(app.elements['view-continue'].disabled, true);
-  app.elements['view-continue'].emit('click');
-  assert.equal(app.document.body.dataset.screen, 'view-picker');
-  app.elements['horror-consent'].checked = true;
-  app.elements['horror-consent'].emit('change');
-  assert.equal(app.elements['view-continue'].disabled, false);
-  app.elements['view-continue'].emit('click');
-  assert.equal(app.document.body.dataset.screen, 'story');
-  assert.equal(app.saved.get('karakurt.viewMode'), 'top2d');
-  assert.ok(app.calls.some(([name, value]) => name === 'setHorrorMode' && value === true));
-  const warning = html.match(/<div id="horror-warning"[\s\S]*?<\/div>/)?.[0];
-  assert.ok(warning);
-  assert.doesNotMatch(warning, /паук|поражен|проигр|скример/i, 'Entry notice must not spoil the surprise');
-  app.gameOptions[0].emit('click');
-  assert.equal(app.document.body.dataset.viewMode, 'top2d');
-});
-
 test('dawn epilogue has grass and architecture, derives its camera from held time and disposes', () => {
   const epilogue = createDawnEpilogue();
   const camera = new PerspectiveCamera(64, 1, 0.08, 220);

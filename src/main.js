@@ -19,8 +19,6 @@ const startButton = byId('start-button');
 const viewPicker = byId('view-picker');
 const viewContinue = byId('view-continue');
 const viewOptions = [...document.querySelectorAll('[data-view-mode]')];
-const gameModeOptions = [...document.querySelectorAll('[data-game-mode]')];
-const horrorConsent = byId('horror-consent');
 const pauseButton = byId('pause-button');
 const resumeButton = byId('resume-button');
 const muteButton = byId('mute-button');
@@ -46,7 +44,7 @@ let failed = false;
 let muted = false;
 let selectedViewMode = 'third';
 let lastPointerUnlock = -Infinity;
-let gameMode = 'campaign';
+const gameMode = 'campaign';   // the saved-game format still records it; there is only one mode
 let dreadRemaining = 7;
 // Loaded only after the original three-map campaign; no save format or camera preference changes.
 let dawnModule = null;
@@ -61,7 +59,7 @@ let safeWasOpen = false;
 let progressModule = null, progressStore = null, savedProgress = null;
 let startRequest = null, progressLoading = false, saveElapsed = 0;
 const isDawn = () => dawnState !== null;
-const effectiveViewMode = () => gameMode === 'horror' ? 'first' : selectedViewMode;
+const effectiveViewMode = () => selectedViewMode;
 
 const currentMap = () => CAMPAIGN[state.campaign.mapIndex];
 const hasFocus = () => !document.hidden && document.hasFocus();
@@ -72,24 +70,15 @@ try { audio = createAudio(); } catch { /* Silent play is supported without WebAu
 
 function updateViewChoice() {
   const activeMode = effectiveViewMode();
-  const isHorror = gameMode === 'horror';
   for (const button of viewOptions) {
     const selected = button.dataset.viewMode === activeMode;
-    button.disabled = isHorror && button.dataset.viewMode !== 'first';
     button.setAttribute('aria-pressed', String(selected));
     button.classList.toggle('view-picker__option--selected', selected);
     button.querySelector('.view-picker__status').textContent = selected ? 'Выбрано' : 'Выбрать';
   }
-  for (const button of gameModeOptions) {
-    button.setAttribute('aria-pressed', String(button.dataset.gameMode === gameMode));
-  }
-  setVisible(byId('horror-warning'), isHorror);
-  viewContinue.disabled = isHorror && !horrorConsent.checked;
   const mode = VIEW_MODES.find(({ id }) => id === activeMode);
-  byId('view-choice-hint').textContent = isHorror
-    ? 'Хоррор — только от первого лица. Подтвердите вход; бой начнётся после вступления.'
-    : `${mode.label}. Бой начнётся только после вступления и подтверждения.`;
-  byId('view-hud-label').textContent = `${isHorror ? 'Хоррор · ' : ''}${mode.label}`;
+  byId('view-choice-hint').textContent = `${mode.label}. Бой начнётся только после вступления и подтверждения.`;
+  byId('view-hud-label').textContent = mode.label;
   byId('view-control-hint').textContent = activeMode === 'first'
     ? 'Клик — захват мыши · Мышь или стрелки — обзор · Esc — освободить и пауза'
     : 'Мышь — прицел по полу · WASD / стрелки — движение';
@@ -101,19 +90,9 @@ function updateViewChoice() {
 }
 
 function selectViewMode(value) {
-  if (gameMode === 'horror') return;
   selectedViewMode = normalizeViewMode(value);
   try { localStorage.setItem(VIEW_KEY, selectedViewMode); } catch { /* Optional preference only. */ }
   view?.setViewMode(effectiveViewMode());
-  updateViewChoice();
-}
-
-function selectGameMode(value) {
-  gameMode = value === 'horror' ? 'horror' : 'campaign';
-  if (gameMode === 'horror') horrorConsent.checked = false;
-  view?.setHorrorMode(gameMode === 'horror');
-  view?.setViewMode(effectiveViewMode());
-  audioCall('setHorrorMode', gameMode === 'horror');
   updateViewChoice();
 }
 
@@ -159,15 +138,15 @@ async function initializeProgress() {
 }
 
 async function fulfillStartRequest() {
-  if (progressLoading || failed || (gameMode === 'horror' && !horrorConsent.checked)) return;
+  if (progressLoading || failed) return;
   const request = startRequest;
   if (!request) return;
   startRequest = null; progressLoading = true; audioCall('unlock');
   try {
     const module = progressModule || await import('./progress.js'); progressModule = module;
     if (phase !== 'view-picker') return;
-    view.setHorrorMode(gameMode === 'horror'); view.setViewMode(effectiveViewMode());
-    audioCall('setHorrorMode', gameMode === 'horror');
+    view.setHorrorMode(false); view.setViewMode(effectiveViewMode());
+    audioCall('setHorrorMode', false);
     dawnState = null; sequelState = null; safeWasOpen = false; queuedEvents = []; announcedWave = '';
     setVisible(byId('safe-panel'), false); setVisible(byId('code-journal'), false);
     presentation = emptyPresentation(); pausedPhase = 'playing'; dawnAction = false;
@@ -488,10 +467,10 @@ function showStory() {
 
 function startGame() {
   if (startRequest) { void fulfillStartRequest(); return; }
-  if (!view || failed || (gameMode === 'horror' && !horrorConsent.checked)) return;
-  view.setHorrorMode(gameMode === 'horror');
+  if (!view || failed) return;
+  view.setHorrorMode(false);
   view.setViewMode(effectiveViewMode());
-  audioCall('setHorrorMode', gameMode === 'horror');
+  audioCall('setHorrorMode', false);
   dreadRemaining = 7;
   dawnState = null;
   sequelState = null;
@@ -655,7 +634,7 @@ function beginPresentation(kind) {
   // unlock may recover an interrupted device; audio retains only this short-lived cue.
   audioCall('unlock');
   audioCall('play', [{ type: kind === 'death' ? 'lose' : 'win', x: 0, z: 0 }]);
-  presentation = { kind, time: 0, duration: kind === 'death' && gameMode === 'horror' ? 4.2 : PRESENTATION_DURATION[kind] };
+  presentation = { kind, time: 0, duration: PRESENTATION_DURATION[kind] };
   noticeRemaining = 0;
   hurtRemaining = 0;
   resetView();
@@ -733,7 +712,7 @@ function returnToMenu() {
   setVisible(byId('code-journal'), false);
   dawnAction = false;
   resultCanContinue = false;
-  audioCall('setHorrorMode', gameMode === 'horror');
+  audioCall('setHorrorMode', false);
   updateViewChoice();
   audioCall('silence');
   presentation = emptyPresentation();
@@ -873,20 +852,6 @@ function frame(now) {
           if (heldTime < cue.at && presentation.time >= cue.at) audioCall('play', [{ type: cue.type, x: 0, z: 0 }]);
         }
       }
-      const contact = presentation.duration * 0.46;
-      if (gameMode === 'horror' && presentation.kind === 'death'
-        && heldTime < contact && presentation.time >= contact) {
-        // Schedule the bite on presentation time, not a delayed audio source:
-        // pause/mute can stop it and resuming cannot skip or duplicate it.
-        audioCall('play', [{ type: 'lose', x: 0, z: 0 }]);
-      }
-    }
-    if (gameMode === 'horror' && phase === 'playing' && !isDawn() && !sequelState) {
-      dreadRemaining -= dt;
-      if (dreadRemaining <= 0) {
-        events.push({ type: 'dread', x: state.player.x + Math.sin(state.time) * 6, z: state.player.z });
-        dreadRemaining = 8 + (Math.floor(state.time) % 7);
-      }
     }
     // The presentation owns its cues. Do not replay a simulation finale or
     // overlap the terminal attack with residual combat sounds after resume().
@@ -912,14 +877,12 @@ function frame(now) {
 startButton.addEventListener('click', () => { startRequest = null; openViewPicker(); });
 byId('load-progress').addEventListener('click', () => {
   if (!savedProgress || failed) return;
-  selectGameMode(savedProgress.mode); startRequest = { type: 'load', save: structuredClone(savedProgress) }; openViewPicker();
+  startRequest = { type: 'load', save: structuredClone(savedProgress) }; openViewPicker();
 });
 byId('chapter-start').addEventListener('click', () => {
   startRequest = { type: 'chapter', chapter: Math.max(1, Math.min(6, Number(byId('chapter-select').value) || 1)) }; openViewPicker();
 });
 viewContinue.addEventListener('click', startGame);
-for (const button of gameModeOptions) button.addEventListener('click', () => selectGameMode(button.dataset.gameMode));
-horrorConsent.addEventListener('change', updateViewChoice);
 for (const button of viewOptions) {
   button.addEventListener('click', () => selectViewMode(button.dataset.viewMode));
   button.addEventListener('keydown', (event) => {

@@ -46,7 +46,7 @@
               </select>
               <button id="chapter-start" class="button" type="button">Начать главу →</button>
             </div>
-            <p id="chapter-help">Выбор главы заменит точку автосохранения после подтверждения. Хоррор требует отдельного согласия.</p>
+            <p id="chapter-help">Выбор главы заменит точку автосохранения после подтверждения.</p>
           </div>
           <p class="menu__footnote">Три боевые карты · двор · больница · дом</p>
           <p id="error-message" class="error-message is-hidden" role="alert"></p>
@@ -96,18 +96,6 @@
               <span class="view-picker__status">Выбрать</span>
             </button>
           </div>
-          <fieldset class="game-mode-picker">
-            <legend>Режим кампании</legend>
-            <div class="game-mode-picker__options">
-              <button type="button" data-game-mode="campaign" aria-pressed="true">Кампания <span>Выбранная перспектива, обычный свет</span></button>
-              <button type="button" data-game-mode="horror" aria-pressed="false">Хоррор <span>Только первое лицо · темнота · резкие звуки</span></button>
-            </div>
-            <div id="horror-warning" class="horror-warning is-hidden" aria-hidden="true">
-              <strong>Хоррор: напряжённые сцены и резкие звуки.</strong>
-              <p>Рекомендуем умеренную громкость. Звук можно полностью выключить.</p>
-              <label><input id="horror-consent" type="checkbox" /> Войти в хоррор-режим</label>
-            </div>
-          </fieldset>
           <p id="view-choice-hint" class="view-picker__hint" aria-live="polite">От третьего лица. Бой начнётся только после вступления и подтверждения.</p>
           <div class="view-picker__actions">
             <button id="view-continue" class="button button--primary" type="button">К вступлению →</button>
