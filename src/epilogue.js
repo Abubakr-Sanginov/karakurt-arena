@@ -118,8 +118,8 @@ export function createDawnEpilogue() {
   skyMesh.castShadow = false; skyMesh.receiveShadow = false;
   const sun = mesh(root, leafGeometry, own(new THREE.MeshBasicMaterial({ color: 0xffe6a7, toneMapped: false })), [-24, 14, -77], [4, 4, 4]);
   sun.castShadow = false;
-  const daylight = new THREE.HemisphereLight(0xd4edff, 0x6b7240, 2.1); root.add(daylight);
-  const light = new THREE.DirectionalLight(0xffd9a0, 3.4); light.position.set(-24, 14, -77); root.add(light);
+  const daylight = new THREE.HemisphereLight(0xffe3c8, 0x4d4a38, 1.35); root.add(daylight);
+  const light = new THREE.DirectionalLight(0xffc58a, 2.7); light.position.set(-24, 14, -77); root.add(light);
   root.visible = false;
   let disposed = false;
   let updateFixtures = null;
@@ -135,8 +135,8 @@ export function createDawnEpilogue() {
       const approach = ease(t / 0.2);
       const opening = ease((t - 0.18) / 0.2);
       const walking = ease((t - 0.38) / 0.56);
-      daylight.intensity = 0.4 + 1.7 * opening;
-      light.intensity = 0.25 + 3.15 * opening;
+      daylight.intensity = 0.4 + 0.95 * opening;
+      light.intensity = 0.25 + 2.45 * opening;
       const cameraOffset = 3.55 + Math.min(2.2, Math.max(0, 1 / camera.aspect - 1) * 1.3);
       // Wait until the trailing lens has cleared the threshold too.
       const z = 3.8 - approach * 2.4 - opening * 0.6 - walking * 9.8;
@@ -181,7 +181,7 @@ export function createDawnEpilogue() {
     updateJourney(state, camera, actor, moving) {
       if (disposed) return;
       root.visible = true;
-      daylight.intensity = 2.1; light.intensity = 3.4;
+      daylight.intensity = 1.35; light.intensity = 2.7;
       courtyard.animate(state.time);
       hinge.rotation.y = 0;
       updateFixtures ??= createDawnFixtures(root, own, state.stops);

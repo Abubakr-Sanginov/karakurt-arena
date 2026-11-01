@@ -22,6 +22,8 @@ export const DAWN_SOLIDS = Object.freeze([
   solid(-6, -29, 7, 0.9), solid(6, -29, 7, 0.9), solid(-5.5, -32, 0.9, 0.9), solid(5.5, -32, 0.9, 0.9),
   solid(-4.4, -15.5, 1.6, 1.6), solid(4.4, -15.5, 1.6, 1.6), solid(-4.4, -24.5, 1.6, 1.6), solid(4.4, -24.5, 1.6, 1.6),
   solid(-2, -3.2, 0.7, 0.7), solid(2, -3.2, 0.7, 0.7),
+  // aftermath set pieces: burn barrel, covered bodies, toppled gurney, floodlight towers
+  solid(-12.3, -19, 1.0, 1.0), solid(-6, -27.5, 2.7, 2.0), solid(-5.5, -11.5, 1.6, 1.4), solid(-12.4, -33.5, 0.9, 0.9), solid(12.4, -33.5, 0.9, 0.9),
 ].map(Object.freeze));
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 export function createAfterDawn() {

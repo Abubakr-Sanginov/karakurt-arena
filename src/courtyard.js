@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { proceduralTexture } from './proceduralTextures.js';
 
 /**
  * The quarantine compound outside the hospital: a walled plaza with a fountain, a parked ambulance,
@@ -9,8 +10,8 @@ export function buildCourtyard({ root, own, mesh, boxGeometry, cylinderGeometry,
   // Returns an animate(time) hook for the blinking emergency lights and the fountain.
   const mat = (color, extra = {}) => own(new THREE.MeshStandardMaterial({ color, roughness: 0.86, ...extra }));
   const m = {
-    pave: mat(0xb9b29c), paveDark: mat(0x948d7c), curb: mat(0xd2cbb3), brick: mat(0x8d5b49), brickDark: mat(0x6f4638),
-    plaster: mat(0xd8cfb6), roof: mat(0x7b4838), glass: mat(0x7fb0c0, { roughness: 0.15, metalness: 0.2 }),
+    pave: mat(0x9b957f), paveDark: mat(0x6f6a5a), curb: mat(0xb8b19b), brick: mat(0x7d5242), brickDark: mat(0x5f3d32),
+    plaster: mat(0xc2b99f), roof: mat(0x7b4838), glass: mat(0x7fb0c0, { roughness: 0.15, metalness: 0.2 }),
     dark: mat(0x1b2a30), steel: mat(0x5d7076, { metalness: 0.5, roughness: 0.5 }), water: mat(0x5aa3bb, { emissive: 0x2c6c84, emissiveIntensity: 0.35, roughness: 0.2 }),
     stone: mat(0xa6a08e), hedge: mat(0x3d6b34), soil: mat(0x5a4332), bloomA: mat(0xd98c9a), bloomB: mat(0xe8d36a),
     wood: mat(0x6d4f3a), canvas: mat(0xdcd5ba), red: mat(0xa23a33), white: mat(0xe8e8df), yellow: mat(0xc9a43a),
@@ -29,7 +30,9 @@ export function buildCourtyard({ root, own, mesh, boxGeometry, cylinderGeometry,
   };
   const ball = (parent, size, position, surface) => mesh(parent, leafGeometry, surface, position, size);
 
-  // ---- Ground: paved plaza, joint grid, kerbs and a pale central promenade ----
+  // ---- Ground: weathered paving (a real texture where a canvas exists), joint grid, kerbs and a central promenade ----
+  const paving = proceduralTexture('pavement', { repeat: [7, 9], size: 512, color: 0x8d8774, seed: 71 });
+  if (paving) { own(paving); m.pave.map = paving; m.pave.color.set(0xffffff); }
   box(root, [28.6, 0.14, 37], [0, -0.07, -18.2], m.pave);
   for (let x = -12; x <= 12; x += 2) box(root, [0.05, 0.02, 36], [x, 0.01, -18.2], m.paveDark).castShadow = false;
   for (let z = -2; z >= -35; z -= 2) box(root, [26, 0.02, 0.05], [0, 0.01, z], m.paveDark).castShadow = false;
@@ -143,8 +146,86 @@ export function buildCourtyard({ root, own, mesh, boxGeometry, cylinderGeometry,
     box(root, [9, 7 + i * 2, 8], [side * (27 + i * 7), 3.5 + i, -10 - i * 15], m.plaster);
     box(root, [9.4, 0.3, 8.4], [side * (27 + i * 7), 7.1 + i * 2, -10 - i * 15], m.roof);
   }
+  // ---- Aftermath: the compound was abandoned in a hurry. Solids for the big pieces live in DAWN_SOLIDS (afterDawn.js). ----
+  const tarp = mat(0x56604f), tape = mat(0xe0b93a, { emissive: 0x5a4710, emissiveIntensity: 0.4 }), stain = mat(0x6a5649, { roughness: 1 });
+  const puddle = mat(0x7a919c, { roughness: 0.2, metalness: 0, emissive: 0x2c3c46, emissiveIntensity: 0.5 }), paper = mat(0xe9e5d3), rust = mat(0x6b4a38, { roughness: 0.9 }), soot = mat(0x4a4540, { roughness: 1 });
+  const flat = (parent, size, position, surface) => { const node = box(parent, size, position, surface); node.castShadow = false; return node; };
+  // Sign painted on a canvas texture; without a canvas (tests) a plain coloured board stands in.
+  const sign = (lines, colour, ink, x, y, z, ry, w = 2.6, h = 1.3) => {
+    let map = null;
+    if (typeof document !== 'undefined' && document.createElement) {
+      const surface = document.createElement('canvas'); surface.width = 512; surface.height = Math.round(512 * h / w);
+      const context = surface.getContext?.('2d');
+      if (context) {
+        context.fillStyle = colour; context.fillRect(0, 0, surface.width, surface.height);
+        context.strokeStyle = ink; context.lineWidth = 10; context.strokeRect(12, 12, surface.width - 24, surface.height - 24);
+        context.fillStyle = ink; context.textAlign = 'center'; context.font = 'bold 84px Impact, "Arial Narrow", sans-serif';
+        lines.forEach((line, i) => context.fillText(line, surface.width / 2, surface.height / 2 + (i - (lines.length - 1) / 2) * 92 + 30));
+        map = own(new THREE.CanvasTexture(surface)); map.colorSpace = THREE.SRGBColorSpace;
+      }
+    }
+    const board = box(root, [w, h, 0.08], [x, y, z], map ? own(new THREE.MeshStandardMaterial({ map, roughness: 0.7 })) : mat(0xc23a2e));
+    board.rotation.y = ry; board.castShadow = false;
+  };
+  sign(['КАРАНТИН'], '#b5322a', '#f4efe0', -10.9, 2.3, -36.0, 0, 3.4, 1.1);
+  sign(['КАРАНТИН'], '#b5322a', '#f4efe0', 10.9, 2.3, -36.0, 0, 3.4, 1.1);
+  sign(['ВХОД', 'ЗАПРЕЩЁН'], '#e0b93a', '#1b1b18', -13.45, 2.0, -7.45, Math.PI / 2, 2.2, 1.6);
+  sign(['СТОП'], '#b5322a', '#f4efe0', 13.45, 2.0, -7.45, -Math.PI / 2, 1.8, 1.1);
+  sign(['ЗОНА', 'ЗАРАЖЕНИЯ'], '#e0b93a', '#1b1b18', 0, 5.4, -0.55, 0, 4.4, 1.6);
+  // Burn barrel with a live fire: glow, flicker and a warm light on the paving beside the ambulance.
+  const barrel = group('courtyard-burn-barrel', -12.3, -19);
+  cylinder(barrel, 0.45, 1.0, [0, 0.5, 0], rust); cylinder(barrel, 0.4, 0.05, [0, 1.02, 0], soot);
+  const flame = ball(barrel, [0.3, 0.45, 0.3], [0, 1.25, 0], mat(0xffa03a, { emissive: 0xff7a1a, emissiveIntensity: 2.2, roughness: 0.4 })); flame.castShadow = false;
+  const fire = new THREE.PointLight(0xff9a45, 16, 11, 1.8); fire.position.set(-12.3, 1.6, -19); root.add(fire);
+  flat(root, [2.4, 0.012, 2.4], [-12, 0.015, -19], soot);
+  // Floodlight towers by the north wall: lattice mast, lamp bank and a cold white spill.
+  for (const side of [-1, 1]) {
+    const tower = group('courtyard-floodlight', side * 12.4, -33.5);
+    for (const [px, pz] of [[-0.3, -0.3], [0.3, -0.3], [-0.3, 0.3], [0.3, 0.3]]) cylinder(tower, 0.05, 5.4, [px, 2.7, pz], m.steel);
+    for (const y of [0.8, 1.9, 3.0, 4.1]) box(tower, [0.7, 0.05, 0.05], [0, y, 0.3], m.steel);
+    box(tower, [1.5, 0.7, 0.2], [0, 5.6, 0], m.dark); box(tower, [1.3, 0.5, 0.06], [0, 5.6, 0.14], m.lampGlow).castShadow = false;
+    const spill = new THREE.PointLight(0xdcecff, 9, 15, 1.8); spill.position.set(side * 12.4, 5.2, -31.5); root.add(spill);
+  }
+  // Covered bodies under tarps by the clinic tent, laid out in a row (nothing graphic, only the shapes under the cloth).
+  for (let i = 0; i < 3; i++) {
+    const bag = group('courtyard-covered', -6.8 + i * 0.85, -27.5, 0.04 * (i - 1));
+    box(bag, [0.62, 0.24, 1.85], [0, 0.14, 0], tarp); ball(bag, [0.2, 0.15, 0.22], [0, 0.26, -0.7], tarp);
+    box(bag, [0.64, 0.015, 0.4], [0, 0.27, 0.35], m.white).castShadow = false;
+  }
+  // Toppled gurney near the generator route.
+  const gurney = group('courtyard-gurney', -5.5, -11.5, 0.5);
+  box(gurney, [0.75, 0.08, 1.9], [0.42, 0.3, 0.1], m.white).rotation.z = 1.3; box(gurney, [0.7, 0.09, 1.85], [0.45, 0.28, 0.1], tarp).rotation.z = 1.3;
+  for (const z of [-0.7, 0.9]) cylinder(gurney, 0.07, 0.5, [-0.05, 0.28, z], m.steel, [0, 0, Math.PI / 2]);
+  // Quarantine tape on stakes around the ambulance, and a hazard line across the west lane.
+  const stake = (x, z) => cylinder(root, 0.03, 1.15, [x, 0.58, z], m.steel);
+  const ribbon = (x1, z1, x2, z2) => {
+    const length = Math.hypot(x2 - x1, z2 - z1), node = flat(root, [0.05, 0.1, length], [(x1 + x2) / 2, 0.95, (z1 + z2) / 2], tape);
+    node.rotation.y = Math.atan2(x2 - x1, z2 - z1); node.rotation.z = 0.04;
+  };
+  const corners = [[-7.0, -10.5], [-11.0, -10.5], [-11.0, -17.5], [-7.0, -17.5]];
+  corners.forEach(([x, z]) => stake(x, z)); corners.forEach(([x, z], i) => { const [nx, nz] = corners[(i + 1) % 4]; if (i !== 3) ribbon(x, z, nx, nz); });
+  // Stains, puddles, cracks, scattered papers and a dropped bag: the plaza reads as used and left.
+  for (const [x, z, r] of [[-3.6, -18, 0.9], [2.8, -22.5, 0.7], [0.4, -31, 1.1], [-6.5, -4.5, 0.8], [7.4, -5.8, 0.6]]) {
+    const node = mesh(root, cylinderGeometry, stain, [x, 0.02, z], [r * 0.75, 0.01, r * 0.45]); node.castShadow = false; node.rotation.y = x;
+  }
+  for (const [x, z, r] of [[4.1, -11, 1.3], [-2.2, -26.5, 1.1], [8.6, -19.5, 0.9], [-5.5, -8, 1.0]]) {
+    const node = mesh(root, cylinderGeometry, puddle, [x, 0.022, z], [r, 0.01, r * 0.7]); node.castShadow = false; node.rotation.y = z;
+  }
+  for (let i = 0; i < 9; i++) flat(root, [0.04, 0.012, 1.4 + (i % 3) * 0.7], [-9 + i * 2.3, 0.016, -6 - (i * 3.7) % 26], m.paveDark).rotation.y = i * 1.37;
+  for (let i = 0; i < 16; i++) {
+    const sheet = flat(root, [0.28, 0.008, 0.38], [-8 + (i * 5.3) % 17, 0.026, -4.5 - (i * 7.9) % 28], paper); sheet.rotation.y = i * 2.1;
+  }
+  box(root, [0.45, 0.28, 0.2], [2.6, 0.14, -9.8], mat(0x3a4a3a)); box(root, [0.38, 0.1, 0.16], [2.6, 0.32, -9.8], mat(0x4a5a46)).rotation.y = 0.4;
+  // Smoke on the horizon: the city beyond the walls is burning somewhere.
+  const smokeMaterial = own(new THREE.MeshBasicMaterial({ color: 0x3b3835, transparent: true, opacity: 0.35, depthWrite: false, fog: false }));
+  for (const [x, z, h] of [[-46, -80, 38], [38, -95, 46], [-14, -120, 52]]) {
+    const column = mesh(root, cylinderGeometry, smokeMaterial, [x, h / 2, z], [3.5, h, 3.5]); column.castShadow = false; column.receiveShadow = false;
+    column.scale.set(2.4, h, 2.4);
+  }
   return {
     animate(time) {
+      const crackle = 0.8 + 0.25 * Math.sin(time * 17) + 0.15 * Math.sin(time * 29.3);
+      fire.intensity = 16 * crackle; flame.scale.set(0.3 * (0.9 + 0.2 * Math.sin(time * 13)), 0.45 * crackle, 0.3);
       const flash = Math.sin(time * 9) > 0;
       m.blue.emissiveIntensity = flash ? 1.6 : 0.1;
       m.emerg.emissiveIntensity = flash ? 0.1 : 1.6;
