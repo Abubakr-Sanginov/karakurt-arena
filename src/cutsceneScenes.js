@@ -978,8 +978,8 @@ function clinicEnding(k) {
   for (const sx of [-1, 1]) for (let row = 0; row < 3; row++) for (let col = 0; col < 3; col++) {
     const x = sx * (1.4 + col * 0.62), z = -1.6 + row * 2.0;
     const ch = group(c, 'chair', x, 0, z, Math.PI);
-    box(ch, [0.52, 0.07, 0.5], [0, 0.46, 0], m.seat); box(ch, [0.52, 0.5, 0.07], [0, 0.74, 0.24], m.seat);
-    for (const a of [-1, 1]) for (const b of [-1, 1]) box(ch, [0.04, 0.44, 0.04], [a * 0.22, 0.22, b * 0.2], m.metal);
+    box(ch, [0.52, 0.07, 0.5], [0, 0.44, 0], m.seat); box(ch, [0.52, 0.5, 0.07], [0, 0.72, -0.24], m.seat);
+    for (const a of [-1, 1]) for (const b of [-1, 1]) box(ch, [0.04, 0.42, 0.04], [a * 0.22, 0.21, b * 0.2], m.metal);
     chairs.push({ x, z });
   }
   const hold = (model) => { model.getObjectByName('visible-carbine').visible = false; return model; };
@@ -988,7 +988,7 @@ function clinicEnding(k) {
   const people = SEATED.map(([sx, row, col], i) => {
     const person = hold(k.model(c, 'human', { variant: 'civilian', tint: i }));
     const x = sx * (1.4 + (col % 3) * 0.62), z = -1.6 + row * 2.0;
-    person.position.set(x, -0.14, z - 0.02); person.rotation.y = Math.PI;
+    person.position.set(x, -0.36, z + 0.05); person.rotation.y = Math.PI;
     const rig = person.userData.modelRig;
     rig.legs.forEach(({ root: leg, knee }) => { leg.rotation.x = -1.5; knee.rotation.x = 1.55; leg.position.y = 0.86; });
     return { person, x, z, i };
@@ -1012,8 +1012,8 @@ function clinicEnding(k) {
       hero.visible = time < 11.2 || !clinic;
       // the doctor opens the door as the hero arrives, steps back, and the door shuts behind them
       const open = smooth(span(time, 8.2, 9.2)) * (1 - smooth(span(time, 10.8, 11.2)));
-      doorHinge.rotation.y = -1.45 * open;
-      doctor.position.z = mix(-7.6, -6.7, smooth(span(time, 8.4, 9.4))); animateHuman(doctor, time, false, { relaxed: true });
+      doorHinge.rotation.y = 1.5 * open;
+      doctor.position.z = mix(-7.6, -6.9, smooth(span(time, 8.4, 9.4))); doctor.position.x = mix(0.1, 1.0, smooth(span(time, 9.4, 10.2))); doctor.rotation.y = mix(0, -0.7, smooth(span(time, 9.4, 10.2))); animateHuman(doctor, time, false, { relaxed: true });
       doctor.userData.modelRig.arms[1].root.rotation.set(-0.9 * smooth(span(time, 8.6, 9.4)), 0, -0.2);
       doctor.visible = time < 11.0;
       animateHuman(clerk, time, false, { relaxed: true });
