@@ -508,7 +508,7 @@ function showBark(count, id) {
 
 // ---- Story systems of the combat chapters: who the infected were, calming them, and a mind that slips after a kill ----
 let metPeople = new Set();
-let epiloguePlayed = false;
+let epiloguePlayed = false, clinicPlayed = false;
 let whisperRemaining = 18;
 const sanityOverlay = byId('sanity');
 const calmPrompt = byId('calm-prompt');
@@ -517,7 +517,7 @@ function hideStoryOverlays() {
   calmPrompt.textContent = '';
 }
 function resetStory() {
-  metPeople = new Set(); epiloguePlayed = false; whisperRemaining = 18; hideStoryOverlays();
+  metPeople = new Set(); epiloguePlayed = false; clinicPlayed = false; whisperRemaining = 18; hideStoryOverlays();
 }
 function updateStoryOverlays(dt) {
   const map = currentMap();
@@ -814,6 +814,11 @@ function frame(now) {
       const input = view.sampleJourneyInput(); input.interact ||= dawnAction; dawnAction = false;
       events.push(...sequelModule.stepSequel(sequelState, input, dt));
       audioCall('play', events); updateSequelUi();
+      // The last scene of chapter 6 (clinic, the doctor's door, waking in the dark) is a staged cutscene, not the in-engine one.
+      if (sequelState.stage === 'ending' && sequelState.chapter === 'home' && !clinicPlayed) {
+        clinicPlayed = true;
+        startCutscene('clinic-ending', () => { sequelState.complete = true; sequelState.message = 'КОНЕЦ. Ночь не закончилась.'; finishGame(); });
+      }
       if (sequelState.complete || (sequelState.lost && sequelState.deathTime >= 3.2)) finishGame();
     } else if (phase === 'playing' && isDawn()) {
       const input = view.sampleJourneyInput();

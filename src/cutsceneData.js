@@ -32,6 +32,20 @@ export const CUTSCENES = Object.freeze({
       { from: 36.0, to: 39.4, text: 'Нина: «Ничего не случится. Врач внутри. Идём».' },
     ]),
   }),
+  // ---- Chapter 6 ending: the clinic waiting room, the doctor's door, then waking at night (replaces the in-engine ending) ----
+  'clinic-ending': Object.freeze({
+    duration: 30,
+    cues: Object.freeze([{ at: 11.2, type: 'scream' }, { at: 11.0, type: 'dread' }, { at: 20.0, type: 'lose' }]),
+    subtitles: Object.freeze([
+      { from: 1.0, to: 4.4, text: 'Другая больница. В приёмной очередь. Я: «Пожалуйста, мне срочно… рана…»' },
+      { from: 5.0, to: 8.6, text: '«Проходите. Вам сейчас нужнее». Люди расступаются, пропуская меня к доктору.' },
+      { from: 9.0, to: 11.0, text: 'Дверь кабинета закрывается.' },
+      { from: 11.4, to: 13.0, text: 'КРИК. И сразу тишина.' },
+      { from: 15.0, to: 19.0, text: 'Я просыпаюсь в своей комнате. Глубокая ночь.' },
+      { from: 19.6, to: 23.6, text: 'Я: «Это был сон?.. Рана цела. Но почему так тихо?..»' },
+      { from: 25.0, to: 29.0, text: 'Ночь не закончилась.' },
+    ]),
+  }),
   // ---- Bonus story: who the stranger is (menu button). Lev Vetrov, the ambulance driver whose wife Lena waited in ward 3. ----
   'stranger': Object.freeze({
     duration: 46,

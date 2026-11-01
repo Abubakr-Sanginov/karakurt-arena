@@ -284,7 +284,7 @@ test('a JavaScript render error is not reported as missing WebGL', () => {
 });
 
 test('cutscenes: data is consistent and every stage builds, poses all through its length and disposes', () => {
-  assert.deepEqual(Object.keys(CUTSCENES).sort(), ['boss-intro', 'car-ride', 'madness-drive', 'madness-home', 'madness-police', 'peace-dawn', 'stranger', 'wake-up']);
+  assert.deepEqual(Object.keys(CUTSCENES).sort(), ['boss-intro', 'car-ride', 'clinic-ending', 'madness-drive', 'madness-home', 'madness-police', 'peace-dawn', 'stranger', 'wake-up']);
   for (const [id, scene] of Object.entries(CUTSCENES)) {
     assert.ok(scene.duration > 5, id);
     assert.equal(cutsceneDuration(id), scene.duration);

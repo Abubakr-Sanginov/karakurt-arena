@@ -935,6 +935,123 @@ function madnessPolice(k, options) {
 }
 
 // ============================================================================
+// Chapter 6 ending: a clinic waiting room, the doctor's door, then waking in the dark
+// ============================================================================
+function clinicEnding(k) {
+  const { root, box, cyl, ball, group, mat } = k;
+  const dust = k.dustMotes(120, 6, 0xdfe9ee, 0.35);
+  // The bedroom stands at the origin (as in the nightmare scene); the clinic is 60 m to the east.
+  const bedHemi = new THREE.HemisphereLight(0x6b8cc4, 0x3a3238, 2.2); root.add(bedHemi);
+  const moon = new THREE.SpotLight(0x8fb2ff, 420, 26, 0.8, 0.7, 1.2); moon.position.set(2.5, 2.1, -4.6); moon.target.position.set(-0.6, 0.4, -1.0);
+  moon.castShadow = true; moon.shadow.mapSize.set(1024, 1024); moon.shadow.bias = -0.0004; root.add(moon, moon.target);
+  bedroomShell(k, 'night');
+  const OX = 60, c = group(root, 'clinic', OX, 0, 0);
+  const m = { tile: k.tmat('tile', { repeat: [7, 6], size: 512, color: 0xb5bcbd }, { roughness: 0.45 }), wall: k.tmat('plaster', { repeat: [3, 1.5], color: 0xc9d1cf }, { roughness: 0.95 }),
+    dado: mat(0x3f6b6e), seat: mat(0x3a5a6a), metal: mat(0x7a8588, { metalness: 0.5 }), wood: k.tmat('wood', { repeat: [2, 1], color: 0x8a6a4c }, { roughness: 0.6 }),
+    glass: mat(0xa8d0da, { transparent: true, opacity: 0.3, depthWrite: false }), door: mat(0x5d4a3b), sign: mat(0x57c58e, { emissive: 0x2c8a5a, emissiveIntensity: 0.9 }),
+    red: mat(0xd2362a, { emissive: 0xb01e14, emissiveIntensity: 1.1 }), lamp: mat(0xf2f7ff, { emissive: 0xdfeaff, emissiveIntensity: 0.9 }), plant: mat(0x3f6e3a), pot: mat(0x7a5a46) };
+  box(c, [14, 0.2, 12], [0, -0.1, 0], m.tile); box(c, [14, 0.2, 12], [0, 3.5, 0], m.wall);
+  box(c, [0.3, 3.4, 12], [-7, 1.7, 0], m.wall); box(c, [0.3, 3.4, 12], [7, 1.7, 0], m.wall); box(c, [14, 3.4, 0.3], [0, 1.7, 6], m.wall);
+  box(c, [0.32, 1.0, 12], [-6.98, 0.5, 0], m.dado); box(c, [0.32, 1.0, 12], [6.98, 0.5, 0], m.dado); box(c, [14, 1.0, 0.32], [0, 0.5, 5.98], m.dado);
+  // Back wall with the doctor's door, and a small lit office behind it.
+  box(c, [5.8, 3.4, 0.3], [-3.9, 1.7, -6], m.wall); box(c, [5.8, 3.4, 0.3], [3.9, 1.7, -6], m.wall); box(c, [2.2, 1.1, 0.3], [0, 2.85, -6], m.wall);
+  box(c, [14, 1.0, 0.32], [0, 0.5, -5.98], m.dado);
+  box(c, [3.2, 3.4, 3.2], [0, 1.7, -9.0], mat(0x2a2623)); box(c, [2.6, 0.05, 2.6], [0, 3.3, -8.2], m.lamp);
+  const officeLight = new THREE.PointLight(0xffe2b0, 14, 9, 1.6); officeLight.position.set(OX, 2.8, -8.2); root.add(officeLight);
+  const doorHinge = group(c, 'office-door', -0.6, 0, -5.9);
+  box(doorHinge, [1.2, 2.2, 0.08], [0.6, 1.1, 0], m.door); box(doorHinge, [0.1, 0.1, 0.12], [1.05, 1.0, 0.06], m.metal);
+  box(c, [0.9, 0.3, 0.06], [0, 2.5, -5.82], m.sign);
+  // Number display, wall clock and a notice board.
+  box(c, [1.8, 0.5, 0.1], [3.9, 2.7, -5.85], mat(0x111418)); box(c, [1.4, 0.3, 0.04], [3.9, 2.7, -5.8], m.red);
+  cyl(c, 0.35, 0.06, [-3.9, 2.7, -5.85], mat(0xf2f0e6), [Math.PI / 2, 0, 0]);
+  box(c, [2.4, 1.4, 0.06], [6.9, 1.9, -1.5], mat(0x8a735a)); for (let i = 0; i < 5; i++) box(c, [0.3, 0.4, 0.02], [6.85, 1.7 + (i % 2) * 0.5, -2.1 + i * 0.5], mat(0xe9e5d3));
+  // Reception on the west side, plants, and ceiling light panels.
+  box(c, [1.0, 1.1, 4.4], [-5.2, 0.55, -2.4], m.wood); box(c, [1.2, 0.08, 4.6], [-5.2, 1.12, -2.4], m.metal); box(c, [0.06, 0.7, 4.4], [-4.75, 1.5, -2.4], m.glass);
+  box(c, [0.5, 0.35, 0.05], [-5.4, 1.45, -3.4], mat(0x1a2026)); box(c, [0.4, 0.25, 0.02], [-5.4, 1.45, -3.37], mat(0x9ec6d4, { emissive: 0x6aa0b4, emissiveIntensity: 0.6 }));
+  for (const [x, z] of [[6.2, 4.8], [-6.2, 4.8], [6.2, -4.6]]) { cyl(c, 0.3, 0.45, [x, 0.22, z], m.pot); ball(c, [0.5, 0.7, 0.5], [x, 0.9, z], m.plant); }
+  const panels = [];
+  for (const x of [-3.5, 3.5]) for (const z of [-3, 1, 4.6]) panels.push(k.flat(c, [1.6, 0.05, 0.6], [x, 3.4, z], m.lamp));
+  const clinicHemi = new THREE.HemisphereLight(0xdfe9ee, 0x6b6a62, 1.1); clinicHemi.position.set(OX, 3, 0); root.add(clinicHemi);
+  const lamps = [[OX - 3.5, 2.9, 1], [OX + 3.5, 2.9, 1], [OX, 2.9, -3.5]].map(([x, y, z]) => { const l = new THREE.PointLight(0xe8f1ff, 16, 11, 1.5); l.position.set(x, y, z); root.add(l); return l; });
+  // Chairs facing the door, in two blocks with a central aisle; some are taken.
+  const chairs = [];
+  for (const sx of [-1, 1]) for (let row = 0; row < 3; row++) for (let col = 0; col < 3; col++) {
+    const x = sx * (1.4 + col * 0.62), z = -1.6 + row * 2.0;
+    const ch = group(c, 'chair', x, 0, z, Math.PI);
+    box(ch, [0.52, 0.07, 0.5], [0, 0.46, 0], m.seat); box(ch, [0.52, 0.5, 0.07], [0, 0.74, 0.24], m.seat);
+    for (const a of [-1, 1]) for (const b of [-1, 1]) box(ch, [0.04, 0.44, 0.04], [a * 0.22, 0.22, b * 0.2], m.metal);
+    chairs.push({ x, z });
+  }
+  const hold = (model) => { model.getObjectByName('visible-carbine').visible = false; return model; };
+  // Waiting people: seated ones turn their heads toward the hero as he passes.
+  const SEATED = [[-1, 0, 0], [-1, 2, 1], [1, 0, 2], [1, 1, 3], [1, 2, 1], [-1, 1, 3]];
+  const people = SEATED.map(([sx, row, col], i) => {
+    const person = hold(k.model(c, 'human', { variant: 'civilian', tint: i }));
+    const x = sx * (1.4 + (col % 3) * 0.62), z = -1.6 + row * 2.0;
+    person.position.set(x, -0.14, z - 0.02); person.rotation.y = Math.PI;
+    const rig = person.userData.modelRig;
+    rig.legs.forEach(({ root: leg, knee }) => { leg.rotation.x = -1.5; knee.rotation.x = 1.55; leg.position.y = 0.86; });
+    return { person, x, z, i };
+  });
+  const clerk = hold(k.model(c, 'human', { variant: 'civilian', tint: 3 })); clerk.position.set(-6.0, 0, -2.4); clerk.rotation.y = Math.PI / 2;
+  const doctor = hold(k.model(c, 'human', { variant: 'doctor' })); doctor.position.set(0.1, 0, -7.6); doctor.rotation.y = 0;
+  const hero = hold(k.model(c, 'human', { variant: 'hero' }));
+  k.box(hero.userData.modelRig.body, [0.16, 0.2, 0.02], [-0.1, 1.12, 0.17], mat(0x6e1a16)).castShadow = false;
+  const HERO_PATH = [[0.5, 5.4], [0.2, 1.8], [0.1, -4.4], [0, -7.4]];
+  const handOn = (rig) => { rig.body.rotation.z += 0.1; rig.body.rotation.x += 0.18; rig.arms[0].root.rotation.set(-0.55, 0, 0.1); rig.arms[0].elbow.rotation.set(-1.5, 0, 0); rig.head.rotation.x += 0.2; };
+  return {
+    update(time, camera) {
+      const clinic = time < 13.4;
+      // lights for the active room only
+      bedHemi.visible = moon.visible = !clinic; clinicHemi.visible = officeLight.visible = clinic; lamps.forEach((l) => { l.visible = clinic; });
+      const flicker = clinic ? (time > 9.5 && time < 11.4 ? 0.35 + 0.65 * Math.abs(Math.sin(time * 33)) : 1) : 1;
+      lamps.forEach((l) => { l.intensity = 16 * flicker; });
+      const w = walkAlong(HERO_PATH, Math.max(0, (time - 1.0) * 1.1));
+      hero.position.set(w.x, 0, w.z); hero.rotation.y = w.yaw;
+      animateHuman(hero, time, w.moving && time < 11.6, { relaxed: true }); handOn(hero.userData.modelRig);
+      hero.visible = time < 11.2 || !clinic;
+      // the doctor opens the door as the hero arrives, steps back, and the door shuts behind them
+      const open = smooth(span(time, 8.2, 9.2)) * (1 - smooth(span(time, 10.8, 11.2)));
+      doorHinge.rotation.y = -1.45 * open;
+      doctor.position.z = mix(-7.6, -6.7, smooth(span(time, 8.4, 9.4))); animateHuman(doctor, time, false, { relaxed: true });
+      doctor.userData.modelRig.arms[1].root.rotation.set(-0.9 * smooth(span(time, 8.6, 9.4)), 0, -0.2);
+      doctor.visible = time < 11.0;
+      animateHuman(clerk, time, false, { relaxed: true });
+      people.forEach(({ person, x, z, i }) => {
+        animateHuman(person, time + i, false, { relaxed: true });
+        const rig = person.userData.modelRig;
+        rig.legs.forEach(({ root: leg, knee }) => { leg.rotation.x = -1.5; knee.rotation.x = 1.55; leg.position.y = 0.86; });
+        rig.arms.forEach(({ root: arm, elbow, side }) => { arm.rotation.set(-0.5, 0, side * 0.1); elbow.rotation.set(-1.3, 0, 0); });
+        // head turns toward the hero while he is within a few metres, then looks down again; two lean aside to let him pass
+        const near = clamp(1 - Math.abs(w.z - z) / 3.2, 0, 1) * smooth(span(time, 1.5, 3));
+        const toward = Math.atan2(w.x - x, w.z - z) - Math.PI;
+        rig.head.rotation.y = clamp((toward + Math.PI * 2) % (Math.PI * 2) > Math.PI ? toward : toward, -1, 1) * near * 0.8; rig.head.rotation.x = 0.12 - 0.1 * near;
+        rig.body.rotation.z += (x < 0 ? 1 : -1) * 0.0;
+      });
+      // cameras
+      let pos, look;
+      const pulse = Math.sin(time * 5.2);
+      if (clinic) {
+        if (time < 4.6) { const u = smooth(time / 4.6); pos = mixVec([OX + 5.6, 1.9, 5.4], [OX + 3.6, 1.6, 3.4], u); look = [OX + 0.2, 1.1, mix(1.0, -1.2, u)]; }
+        else if (time < 8.6) { const u = smooth(span(time, 4.6, 8.6)); pos = mixVec([OX - 2.4, 1.6, 4.4], [OX + 0.4, 1.55, 2.2], u); look = [OX + w.x * 0.8, 1.2, w.z - 1]; }
+        else { const u = smooth(span(time, 8.6, 12.6)); pos = mixVec([OX + 1.2, 1.5, 1.0], [OX + 0.2, 1.4, -3.4], u); look = [OX + 0.0, 1.3, -6.4]; }
+      } else {
+        const t = time - 13.4;
+        if (t < 6.4) { const u = smooth(t / 6.4); pos = [0.05 + Math.sin(time * 0.8) * 0.03, 0.82 + pulse * 0.01, -1.9]; look = mixVec([0, 3.0, -2.6], [2.0, 1.4, -1.5], u); }
+        else { const u = smooth(span(t, 6.4, 9)); pos = mixVec([0.05, 0.9, -1.9], [0.05, 1.3, -1.6], u); look = mixVec([2.0, 1.4, -1.5], [0, 1.0, 3.0], u); }
+      }
+      camera.position.set(...pos); camera.lookAt(...look);
+      // black cut at the scream, eyes opening in the bedroom, fade out at the end
+      const eyes = clinic ? 1 : smooth(span(time, 14.4, 16.4));
+      const dark = Math.max(clinic ? 1 - smooth(span(time, 0, 1.0)) : 0, time >= 11.9 && clinic ? 1 : 0, smooth(span(time, 28.4, 30)));
+      dust.update(time, camera);
+      k.setScreen(camera, dark, Math.min(1, eyes + (dark >= 1 ? 1 : 0)), clinic ? 0 : 0.1 * (0.5 + 0.5 * pulse) * (1 - smooth(span(time, 18, 21))));
+    },
+    dispose() {},
+  };
+}
+
+// ============================================================================
 // Peaceful epilogue: morning at home, Nina and the people who were calmed
 // ============================================================================
 function peaceDawn(k, options) {
@@ -1014,7 +1131,7 @@ function strangerStory(k) {
   };
 }
 
-const BUILDERS = { 'stranger': strangerStory, 'peace-dawn': peaceDawn, 'madness-drive': madnessDrive, 'madness-home': madnessHome, 'madness-police': madnessPolice,  'wake-up': wakeUp, 'boss-intro': bossIntro, 'car-ride': carRide };
+const BUILDERS = { 'clinic-ending': clinicEnding, 'stranger': strangerStory, 'peace-dawn': peaceDawn, 'madness-drive': madnessDrive, 'madness-home': madnessHome, 'madness-police': madnessPolice,  'wake-up': wakeUp, 'boss-intro': bossIntro, 'car-ride': carRide };
 
 /** One cutscene stage: owns its objects; update(time, camera) poses everything from the held time. */
 export function createCutsceneStage(id, options = {}) {
