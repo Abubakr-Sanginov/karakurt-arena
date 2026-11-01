@@ -315,7 +315,7 @@ body[data-cutscene]::after { bottom: 0; opacity: 1; box-shadow: none; }
 .cutscene__skip:hover { color: #fff; border-color: var(--accent); }
 
 /* The hero's thoughts after shooting an infected bystander. */
-.bark { position: fixed; z-index: 5; left: 50%; bottom: 20vh; transform: translateX(-50%); margin: 0; max-width: min(90vw, 780px); text-align: center; font-size: clamp(18px, 2.4vw, 28px); font-style: italic; letter-spacing: .01em; color: #f0dcd2; text-shadow: 0 2px 8px #000, 0 0 22px rgba(160, 30, 24, .8); pointer-events: none; animation: bark-in .25s ease-out; }
+.bark { position: fixed; z-index: 5; left: 50%; bottom: 22vh; transform: translateX(-50%); margin: 0; max-width: min(86vw, 720px); text-align: center; font-size: clamp(15px, 1.7vw, 21px); font-style: italic; letter-spacing: .01em; color: #f0dcd2; text-shadow: 0 2px 8px #000, 0 0 22px rgba(160, 30, 24, .8); pointer-events: none; animation: bark-in .25s ease-out; }
 @keyframes bark-in { from { opacity: 0; transform: translateX(-50%) translateY(8px); } to { opacity: 1; transform: translateX(-50%); } }
 
 /* Cinematic look: gentle grade on the canvas and a vignette, only while a cutscene runs. */
@@ -343,3 +343,6 @@ body[data-cutscene] #game-canvas { filter: contrast(1.07) saturate(1.1) brightne
 .secret__back.is-ready { opacity: 1; }
 
 .stranger-button { margin-top: 14px; color: var(--muted); }
+
+/* In chapters the action button is a compact pill in the bottom row (left of Pause), not a strip across the whole screen. */
+body[data-journey="dawn"] #dawn-interact { justify-self: center; width: auto; min-width: 300px; padding: 12px 26px; font-size: 15px; box-shadow: 0 6px 24px rgba(0, 0, 0, .55); }

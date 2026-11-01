@@ -522,7 +522,7 @@ function resetStory() {
 function updateStoryOverlays(dt) {
   const map = currentMap();
   const near = nearestInfected(state, map, 3.4);
-  if (near && !metPeople.has(near.id) && barkRemaining <= 0) { metPeople.add(near.id); showLine(meetLine(near.id), 7.5); }
+  if (near && !metPeople.has(near.id) && barkRemaining <= 0) { metPeople.add(near.id); showLine(meetLine(near.id), 5.5); }
   const reachable = nearestInfected(state, map, 2.6);
   const prompt = reachable ? `${CALM_PROMPT} · ${personInfo(reachable.id).name}` : '';
   if (calmPrompt.textContent !== prompt) { calmPrompt.textContent = prompt; setVisible(calmPrompt, Boolean(prompt)); }
