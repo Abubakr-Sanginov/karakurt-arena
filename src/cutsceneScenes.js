@@ -435,7 +435,7 @@ function carRide(k) {
   const { root, mat } = k;
   const m = buildStreet(k);
   const dust = k.dustMotes(90, 8, 0xfff0d0, 0.4);
-  const { car, wheel, doors, tires } = buildCar(k, m, -2.2);
+  const { car, wheel, doors, tires, roof } = buildCar(k, m, -2.2);
   const nina = k.model(root, 'human', { variant: 'medic' });
   const hero = k.model(root, 'human', { variant: 'hero' });
   for (const h of [nina, hero]) h.getObjectByName('visible-carbine').visible = false;
@@ -490,6 +490,7 @@ function carRide(k) {
       m.head.emissiveIntensity = time > 11.0 ? 1.6 : 0; m.tail.emissiveIntensity = time > 11.0 ? 0.9 + braking * 1.2 : 0.15;
       wheel.rotation.z = -0.2 + Math.sin(time * 0.55 + 1.2) * 0.22 * Math.min(1, speed / 10);
       const cx = car.position.x;
+      roof.visible = !(time > 9.7 && time < 14.2);   // cutaway for the shots inside the cabin
       // Doors: Nina's opens when she arrives and again when she leaves, the passenger door for the hero both times.
       doors.driver.rotation.y = -1.15 * doorOpen(time, 5.6, 6.4, 7.8, 8.4) - 1.15 * doorOpen(time, T_NINA_OUT - 0.5, T_NINA_OUT, T_NINA_OUT + 1.6, T_NINA_OUT + 2.4);
       doors.passenger.rotation.y = 1.15 * doorOpen(time, 8.6, 9.4, 10.2, 10.8) + 1.15 * doorOpen(time, T_HERO_OUT - 0.6, T_HERO_OUT, T_HERO_OUT + 3.4, T_HERO_OUT + 4.4);
@@ -538,8 +539,8 @@ function carRide(k) {
       animateHuman(hero, time, heroMoving, { relaxed: true });
       const rig = hero.userData.modelRig;
       const hurt = hSeatIn < 1 || heroOutside ? 1 : 0;
-      if (hurt) { rig.body.rotation.z += 0.1; rig.body.rotation.x += 0.16 * (1 - hSeat); rig.arms[0].root.rotation.x = -0.55; rig.arms[0].elbow.rotation.x = -1.5; rig.head.rotation.x += 0.18; }
-      seat(hero, 'passenger', hSeat, 0.3);
+      if (hurt) { rig.body.rotation.z += 0.1 * (1 - hSeat * 0.6); rig.body.rotation.x += 0.16 * (1 - hSeat); rig.arms[0].root.rotation.x = -0.55; rig.arms[0].elbow.rotation.x = -1.5; rig.head.rotation.x += 0.18; }
+      seat(hero, 'passenger', hSeat, 0.08);
       if (heroOutside && time >= T_WALK) { rig.body.rotation.x = 0.2; rig.arms[0].root.rotation.set(-0.55, 0, 0.1); rig.arms[0].elbow.rotation.set(-1.5, 0, 0); }
       // Nina glances at the hero while driving; out of the car she supports him with an arm round his back.
       if (time > 11 && nSeat > 0.5) nina.userData.modelRig.head.rotation.y = Math.sin(time * 0.7) * 0.25 - 0.3;
@@ -550,7 +551,9 @@ function carRide(k) {
       const shake = time > 11 && time < 24.4 ? Math.min(1, speed / 12) * 0.006 : 0;
       if (time < 4.6) { const u = smooth(time / 4.6); pos = mixVec([-11.4, 1.2, -1.6], [-8.4, 1.45, -1.2], u); look = mixVec([-10.4, 1.1, 3.4], [-6.4, 1.0, 3.1], u); }
       else if (time < 9.8) { const u = smooth(span(time, 4.6, 9.8)); pos = mixVec([-1.2, 1.7, 7.4], [-7.0, 1.7, 6.6], u); look = mixVec([-4.2, 1.0, 1.6], [-2.4, 1.0, 1.3], u); }
-      else if (time < 14) { const u = smooth(span(time, 9.8, 14)); pos = rel(...mixVec([-0.1, 1.55, -1.9], [0.25, 1.52, -1.5], u)); look = rel(...mixVec([0.0, 1.05, 0.5], [0.0, 1.15, 0.4], u)); }
+      // inside the car: first in profile through the passenger window, then from above the bonnet so the dashboard no longer cuts them off
+      else if (time < 12.4) { const u = smooth(span(time, 9.8, 12.4)); pos = rel(...mixVec([2.7, 2.6, -1.5], [2.3, 2.5, -0.7], u)); look = rel(-0.05, 1.2, 0.5); }
+      else if (time < 14) { const u = smooth(span(time, 12.4, 14)); pos = rel(...mixVec([0.9, 2.6, -2.9], [0.3, 2.5, -2.4], u)); look = rel(0, 1.2, 0.5); }
       else if (time < 16.6) { const u = smooth(span(time, 14, 16.6)); pos = rel(...mixVec([-5.8, 1.1, -0.2], [-5.0, 1.0, 1.0], u)); look = rel(0, 0.9, 0.2); }
       else if (time < 18.6) { const u = smooth(span(time, 16.6, 18.6)); pos = rel(...mixVec([-2.6, 0.45, -3.4], [-2.2, 0.4, -1.4], u)); look = rel(-1.0, 0.4, 0.0); }      // low, at the wheels
       else if (time < 21.4) { const u = smooth(span(time, 18.6, 21.4)); pos = rel(...mixVec([1.6, 1.8, 7.8], [0.6, 1.4, 6.0], u)); look = rel(0, 1.1, -3); }
