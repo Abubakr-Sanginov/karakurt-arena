@@ -1,0 +1,91 @@
+{
+  "results": [
+    {
+      "check": "Main menu renders with WebGL 2",
+      "passed": true,
+      "details": null
+    },
+    {
+      "check": "Real DOM menu contract",
+      "passed": true,
+      "details": {
+        "passed": true,
+        "width": 1440,
+        "checked": [
+          "top2d",
+          "third",
+          "first"
+        ],
+        "unverified": [
+          "Trusted keyboard activation",
+          "Reload",
+          "Blocked storage",
+          "Movement/aim/hits",
+          "Pointer Lock",
+          "Chapter transitions",
+          "Visual quality and frame timings"
+        ]
+      }
+    },
+    {
+      "check": "Real DOM horror contract",
+      "passed": true,
+      "details": {
+        "passed": true,
+        "unverified": [
+          "Horror gameplay, sound and defeat",
+          "Dawn presentation",
+          "Pause/blur and Pointer Lock"
+        ]
+      }
+    },
+    {
+      "check": "Trusted keyboard selection and reload persistence",
+      "passed": true,
+      "details": null
+    },
+    {
+      "check": "Movement, aiming, hits, collision, dodge and all maps",
+      "passed": true,
+      "details": [
+        {
+          "mode": "top2d",
+          "maps": [
+            "campaign-night-ward",
+            "campaign-quarantine-corridor",
+            "campaign-pump-exit"
+          ],
+          "kills": 1
+        },
+        {
+          "mode": "third",
+          "maps": [
+            "campaign-night-ward",
+            "campaign-quarantine-corridor",
+            "campaign-pump-exit"
+          ],
+          "kills": 1
+        },
+        {
+          "mode": "first",
+          "maps": [
+            "campaign-night-ward",
+            "campaign-quarantine-corridor",
+            "campaign-pump-exit"
+          ],
+          "kills": 1
+        }
+      ]
+    },
+    {
+      "check": "Pointer Lock release, pause, resume, return and restart",
+      "passed": true,
+      "details": {
+        "supported": true,
+        "released": true,
+        "restarted": true
+      }
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,23 @@
+{
+  "name": "karakurt-arena",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Каракурт: паук против человека — 3D-арена для Sharrowkin Jam",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 8090 --strictPort",
+    "start": "npm run dev",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 8090 --strictPort",
+    "test": "node --test tests/simulation.test.mjs"
+  },
+  "dependencies": {
+    "three": "0.169.0"
+  },
+  "devDependencies": {
+    "vite": "^7.1.12"
+  }
+}

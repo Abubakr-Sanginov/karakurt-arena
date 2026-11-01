@@ -1,0 +1,118 @@
+// World coordinates use the XZ plane; rotations are radians and colors are RGB integers.
+// Keep a clear spawn area around (0, 0). Infected are scenery, never combat targets.
+export const CAMPAIGN = [
+  {
+    id: 'night-ward',
+    title: 'Ночная палата',
+    intro: [
+      'Я прихожу в себя на холодном полу ночной палаты. Аварийный свет выхватывает пустые койки, а за дверью скребут лапы.',
+      'У стен — люди, с которыми я пережил первую ночь. Я узнаю лица, но пустые взгляды и судорожные движения выдают заражение. На мой голос они отвечают только хрипом.',
+      'На плане у двери отмечен служебный выход через карантинный коридор и насосную. Если я хочу увидеть утро, придётся пробиться туда.',
+    ],
+    outro: [
+      'Последние пауки затихают между койками. Я добираюсь до двери, оставляя за спиной знакомые лица, которых уже не могу вернуть.',
+      'Главный вход заперт карантинной решёткой. Стрелка на стене ведёт в коридор: только через насосную можно выйти наружу.',
+    ],
+    arena: { halfWidth: 11, halfDepth: 10 },
+    obstacles: [
+      { x: -4.6, z: -5.8, radius: 0.85 },
+      { x: 4.6, z: -5.8, radius: 0.85 },
+      { x: -4.6, z: 5.8, radius: 0.85 },
+      { x: 4.6, z: 5.8, radius: 0.85 },
+    ],
+    props: [
+      { kind: 'bed', x: -7.5, z: -4.3, rotation: 0 },
+      { kind: 'bed', x: 7.5, z: -4.3, rotation: 0 },
+      { kind: 'bed', x: -7.5, z: 4.3, rotation: Math.PI },
+      { kind: 'bed', x: 7.5, z: 4.3, rotation: Math.PI },
+      { kind: 'crate', x: -7.5, z: 0, rotation: 0.12 },
+      { kind: 'crate', x: 7.5, z: 0, rotation: -0.12 },
+      { kind: 'lamp', x: 0, z: -7.5, rotation: 0 },
+      { kind: 'lamp', x: 0, z: 7.5, rotation: Math.PI },
+    ],
+    infected: [
+      { id: 'ward-patient-west', x: -7.8, z: -7, rotation: 0.3 },
+      { id: 'ward-patient-east', x: 7.8, z: -7, rotation: -0.3 },
+      { id: 'ward-patient-door', x: -7.8, z: 7, rotation: Math.PI - 0.2 },
+      { id: 'ward-patient-window', x: 7.8, z: 7, rotation: Math.PI + 0.2 },
+    ],
+    palette: { floor: 0x1b2738, wall: 0x273a50, fog: 0x070d18 },
+    waves: 2,
+    boss: false,
+  },
+  {
+    id: 'quarantine-corridor',
+    title: 'Карантинный коридор',
+    intro: [
+      'Коридор залит больным зелёным светом. Брошенные каталки и ящики с медикаментами тянутся вдоль стен; стрелки к насосной ещё различимы под пылью.',
+      'За стеклом карантина качаются заражённые. На одном — повязка человека, который делился со мной водой. Теперь он лишь скребёт стекло, не узнавая меня.',
+      'В дальнем конце гудят насосы и видна служебная дверь. Нужно пройти коридор, пока пауки не отрезали единственный путь к ней.',
+    ],
+    outro: [
+      'Коридор больше не шевелится от паучьих лап. Я следую стрелкам к тяжёлой двери, не отвечая на хрип за карантинным стеклом.',
+      'Дверь в насосную поддаётся. Изнутри тянет холодным воздухом: выход наружу уже рядом, но за трубами снова слышен скрежет.',
+    ],
+    arena: { halfWidth: 7.5, halfDepth: 14.5 },
+    obstacles: [
+      { x: -4.5, z: -6.6, radius: 0.8 },
+      { x: 4.5, z: -6.6, radius: 0.8 },
+      { x: -4.5, z: 6.6, radius: 0.8 },
+      { x: 4.5, z: 6.6, radius: 0.8 },
+    ],
+    props: [
+      { kind: 'bed', x: -4.5, z: -10.7, rotation: 0 },
+      { kind: 'bed', x: 4.5, z: 10.7, rotation: Math.PI },
+      { kind: 'crate', x: 4.5, z: -10.7, rotation: 0.15 },
+      { kind: 'crate', x: -4.5, z: 10.7, rotation: -0.15 },
+      { kind: 'lamp', x: -4.7, z: 0, rotation: Math.PI / 2 },
+      { kind: 'lamp', x: 4.7, z: 0, rotation: -Math.PI / 2 },
+    ],
+    infected: [
+      { id: 'corridor-water-carrier', x: -4.8, z: -3.4, rotation: Math.PI / 2 },
+      { id: 'corridor-orderly', x: 4.8, z: 3.4, rotation: -Math.PI / 2 },
+      { id: 'corridor-watchman', x: 0, z: 11.2, rotation: Math.PI },
+    ],
+    palette: { floor: 0x1d302f, wall: 0x304c43, fog: 0x071713 },
+    waves: 2,
+    boss: false,
+  },
+  {
+    id: 'pump-exit',
+    title: 'Насосная: выход наружу',
+    intro: [
+      'Под ржавыми трубами дрожит тёплый аварийный свет. Между насосами видна наружная дверь; из щели под ней тянет свежим воздухом.',
+      'У стен застыли ещё несколько заражённых из нашей группы. Их плечи дёргаются в такт гулу машин. Я помню их живыми, но сейчас никто из них не сможет пойти со мной.',
+      'Огромный каракурт загородил проход, а из-под насосов лезет его выводок. За ними — последняя дверь. Другого пути нет.',
+    ],
+    outro: [
+      'Огромный каракурт падает, и гул насосов наконец не тонет в скрежете лап. Я добираюсь до наружной двери и выталкиваю её плечом.',
+      'На улице уже светает. Я закрываю за собой дверь карантина, вдыхаю холодный воздух и впервые за ночь опускаю оружие. Я выбрался.',
+    ],
+    arena: { halfWidth: 13, halfDepth: 11.5 },
+    obstacles: [
+      { x: -6, z: -4.7, radius: 1.25 },
+      { x: 6, z: -4.7, radius: 1.25 },
+      { x: -6, z: 4.7, radius: 1.25 },
+      { x: 6, z: 4.7, radius: 1.25 },
+    ],
+    props: [
+      { kind: 'crate', x: -9.6, z: -6.8, rotation: 0.2 },
+      { kind: 'crate', x: 9.6, z: -6.8, rotation: -0.2 },
+      { kind: 'crate', x: -9.6, z: 6.8, rotation: -0.15 },
+      { kind: 'crate', x: 9.6, z: 6.8, rotation: 0.15 },
+      { kind: 'crate', x: 0, z: -8.4, rotation: 0 },
+      { kind: 'lamp', x: -9.6, z: 0, rotation: Math.PI / 2 },
+      { kind: 'lamp', x: 9.6, z: 0, rotation: -Math.PI / 2 },
+      { kind: 'lamp', x: -3.6, z: 8.5, rotation: Math.PI },
+      { kind: 'lamp', x: 3.6, z: 8.5, rotation: Math.PI },
+    ],
+    infected: [
+      { id: 'pump-mechanic', x: -9.6, z: -3, rotation: 0.6 },
+      { id: 'pump-medic', x: 9.6, z: 3, rotation: Math.PI + 0.6 },
+      { id: 'pump-straggler', x: 0, z: -6.2, rotation: 0.2 },
+    ],
+    palette: { floor: 0x342a22, wall: 0x5b4838, fog: 0x131b22 },
+    waves: 3,
+    boss: true,
+  },
+];

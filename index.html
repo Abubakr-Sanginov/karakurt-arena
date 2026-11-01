@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#111511" />
+    <meta name="description" content="Каракурт: паук против человека. Сюжетный 3D-шутер: три ночные карты, заражённые выжившие и побег к рассвету." />
+    <title>Каракурт — паук против человека</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23111511'/%3E%3Cg stroke='%23f39445' stroke-width='4' fill='none' stroke-linecap='round'%3E%3Cpath d='m26 30-12-12-5 3m17 13-17-2-3 5m20 1-16 8 1 6m16-11-7 14 3 4m15-29 12-12 5 3M38 34l17-2 3 5m-20 1 16 8-1 6M37 41l7 14-3 4'/%3E%3C/g%3E%3Cellipse cx='32' cy='39' rx='9' ry='12' fill='%23f39445'/%3E%3Ccircle cx='32' cy='24' r='6' fill='%23f39445'/%3E%3C/svg%3E" />
+  </head>
+  <body data-screen="menu">
+    <canvas id="game-canvas" tabindex="0" aria-label="3D-арена. WASD или стрелки — движение, мышь — прицел, ЛКМ или пробел — стрельба."></canvas>
+    <div class="screen-grain" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <a class="wordmark" href="./" aria-label="Каракурт — начало">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><path d="m12 13-6-6-3 2m9 6-9-1-2 3m11 0-8 5 1 4m8-7-4 9 2 2m9-17 6-6 3 2m-9 6 9-1 2 3m-11 0 8 5-1 4m-8-7 4 9-2 2"/><ellipse cx="16" cy="18" rx="5" ry="7"/><circle cx="16" cy="9" r="3"/></svg>
+        <span>КАРАКУРТ<small>ПАУК ПРОТИВ ЧЕЛОВЕКА</small></span>
+      </a>
+      <button id="mute-button" class="button button--quiet" type="button" aria-pressed="false" aria-label="Выключить звук">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4 5 9H2v6h3l6 5ZM15 8c3 2 3 6 0 8m3-11c5 4 5 10 0 14"/></svg>
+        <span id="mute-label">Звук: вкл.</span>
+      </button>
+    </header>
+
+    <main>
+      <section id="menu" class="screen menu landing" aria-labelledby="menu-title">
+        <div class="menu__copy landing__hero">
+          <p class="eyebrow"><span class="signal-dot"></span>НОЧНАЯ СМЕНА / СЮЖЕТНАЯ КАМПАНИЯ</p>
+          <h1 id="menu-title">КАРА<span>КУРТ<span class="title-dot">.</span></span></h1>
+          <p class="menu__lead">У этой ночи.<br />Слишком много ног.</p>
+          <p class="menu__description">Вы очнулись в закрытой палате. Вокруг — люди, которые уже не совсем живы. Пройдите карантин и насосную, переживите каракуртов и найдите выход до рассвета.</p>
+          <div class="landing__actions">
+            <button id="start-button" class="button button--primary" type="button">Играть →</button>
+            <span class="landing__choice">Выберите, как увидеть эту ночь</span>
+          </div>
+          <div class="progress-menu">
+            <button id="load-progress" class="button" type="button" disabled>Продолжить сохранение</button>
+            <p id="save-status" role="status">Проверяем сохранение…</p>
+            <label for="chapter-select">Или начать с выбранной главы</label>
+            <div class="chapter-select-row">
+              <select id="chapter-select" aria-describedby="chapter-help">
+                <option value="1">1 · Ночная палата</option><option value="2">2 · Карантин</option>
+                <option value="3">3 · Насосная</option><option value="4">4 · Рассветный двор</option>
+                <option value="5">5 · Больница</option><option value="6">6 · Дом и сейф</option>
+              </select>
+              <button id="chapter-start" class="button" type="button">Начать главу →</button>
+            </div>
+            <p id="chapter-help">Выбор главы заменит точку автосохранения после подтверждения. Хоррор требует отдельного согласия.</p>
+          </div>
+          <p class="menu__footnote">Три боевые карты · двор · больница · дом</p>
+          <p id="error-message" class="error-message is-hidden" role="alert"></p>
+          <noscript><p class="error-message">Чтобы запустить игру, включите JavaScript в настройках браузера.</p></noscript>
+        </div>
+
+        <aside class="panel briefing" aria-labelledby="briefing-title">
+          <div class="briefing__top"><span class="eyebrow">ПРОТОКОЛ ЭВАКУАЦИИ</span><span class="bracket-mark" aria-hidden="true">[ 01 / 03 ]</span></div>
+          <div class="briefing__number" aria-hidden="true">03<span>карты<br />до свободы</span></div>
+          <h2 id="briefing-title">Рука цела.<br />Пока что.</h2>
+          <p class="briefing__text">Палата. Карантин. Насосная.<br />Читайте историю глав, держите дистанцию и двигайтесь к выходу.</p>
+          <dl class="controls">
+            <div><dt><kbd>WASD</kbd><span class="key-alternative"> / стрелки</span></dt><dd>Двигаться</dd></div>
+            <div><dt>Мышь</dt><dd>Целиться</dd></div>
+            <div><dt><kbd>ЛКМ</kbd><span class="key-alternative"> / пробел</span></dt><dd>Стрелять</dd></div>
+            <div><dt><kbd>Shift</kbd></dt><dd>Рывок · откат 2 с</dd></div>
+            <div><dt><kbd>Esc</kbd></dt><dd>Пауза, в том числе в финале</dd></div>
+          </dl>
+          <p class="briefing__hint"><span aria-hidden="true">↗</span> Заражённые — не союзники и не цели. Выход охраняют пауки.</p>
+        </aside>
+        <footer class="menu__footer"><span>СОЗДАНО В <button id="secret-link" class="secret-link" type="button">SHARROWKIN</button></span><span>ТРИ КАРТЫ. ОДИН ПУТЬ НАРУЖУ.</span><span>JAM / 2026</span></footer>
+      </section>
+
+      <section id="view-picker" class="screen overlay view-picker is-hidden" role="dialog" aria-modal="true" aria-labelledby="view-picker-title" aria-describedby="view-picker-description" aria-hidden="true" inert>
+        <div class="panel view-picker__card">
+          <p class="eyebrow">ШАГ 01 / ПЕРСПЕКТИВА</p>
+          <h2 id="view-picker-title">Как вы увидите эту ночь?</h2>
+          <p id="view-picker-description">Одна история, одинаковые здоровье и волны. Выберите камеру и атмосферу; правила боя остаются общими.</p>
+          <div class="view-picker__options" role="group" aria-label="Перспектива игры">
+            <button class="view-picker__option" type="button" data-view-mode="top2d" aria-pressed="false">
+              <span class="view-picker__icon view-picker__icon--top" aria-hidden="true">↓</span>
+              <strong>2D — вид сверху</strong>
+              <span>Плоская арена сверху. Мышь задаёт точку прицеливания на полу.</span>
+              <span class="view-picker__status">Выбрать</span>
+            </button>
+            <button class="view-picker__option view-picker__option--selected" type="button" data-view-mode="third" aria-pressed="true">
+              <span class="view-picker__icon view-picker__icon--third" aria-hidden="true">↗</span>
+              <strong>От третьего лица</strong>
+              <span>Исходная наклонная перспектива. Герой и ближайшие угрозы в одном кадре.</span>
+              <span class="view-picker__status">Выбрано</span>
+            </button>
+            <button class="view-picker__option" type="button" data-view-mode="first" aria-pressed="false">
+              <span class="view-picker__icon view-picker__icon--first" aria-hidden="true">⊕</span>
+              <strong>От первого лица</strong>
+              <span>Камера на уровне глаз. Мышь — обзор, движение относительно взгляда.</span>
+              <span class="view-picker__status">Выбрать</span>
+            </button>
+          </div>
+          <fieldset class="game-mode-picker">
+            <legend>Режим кампании</legend>
+            <div class="game-mode-picker__options">
+              <button type="button" data-game-mode="campaign" aria-pressed="true">Кампания <span>Выбранная перспектива, обычный свет</span></button>
+              <button type="button" data-game-mode="horror" aria-pressed="false">Хоррор <span>Только первое лицо · темнота · резкие звуки</span></button>
+            </div>
+            <div id="horror-warning" class="horror-warning is-hidden" aria-hidden="true">
+              <strong>Хоррор: напряжённые сцены и резкие звуки.</strong>
+              <p>Рекомендуем умеренную громкость. Звук можно полностью выключить.</p>
+              <label><input id="horror-consent" type="checkbox" /> Войти в хоррор-режим</label>
+            </div>
+          </fieldset>
+          <p id="view-choice-hint" class="view-picker__hint" aria-live="polite">От третьего лица. Бой начнётся только после вступления и подтверждения.</p>
+          <div class="view-picker__actions">
+            <button id="view-continue" class="button button--primary" type="button">К вступлению →</button>
+            <button class="text-button" data-action="menu" type="button">Назад в меню</button>
+          </div>
+          <p class="view-picker__keys">Tab / стрелки — выбор · Enter / пробел — выбрать · Esc — назад. Нужны клавиатура и мышь; сенсорного управления нет.</p>
+        </div>
+      </section>
+
+      <section id="hud" class="hud is-hidden" aria-label="Состояние игрока" aria-hidden="true">
+        <div class="hud__main">
+          <div class="hud__stat hud__health">
+            <span class="stat-label">Состояние</span>
+            <div class="health-heading"><strong><span id="health-value">100</span><span class="stat-unit"> / 100</span></strong><span class="health-cross" aria-hidden="true">+</span></div>
+            <div id="health-meter" class="health-meter" role="progressbar" aria-label="Здоровье" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><span id="health-fill"></span></div>
+          </div>
+          <div class="hud__stat"><span id="map-label" class="stat-label">Карта 1 / 3 · волна</span><strong id="wave-value">1 / 2</strong><span id="wave-status" class="stat-detail">Целей: 0</span></div>
+          <div class="hud__stat"><span class="stat-label">Счёт</span><strong id="score-value">0</strong><span class="stat-detail">Устранено: <span id="kills-value">0</span></span></div>
+        </div>
+        <div class="hud__bottom">
+          <div class="dodge-status"><div><kbd>Shift</kbd><span id="dodge-label">Рывок готов</span></div><div class="dodge-meter"><span id="dodge-fill"></span></div></div>
+          <p class="hud__hint"><strong id="view-hud-label">От третьего лица</strong> · ЛКМ / ПРОБЕЛ — ОГОНЬ<span id="view-control-hint">Мышь — прицел по полу · WASD / стрелки — движение</span><span id="code-journal" class="is-hidden"></span></p>
+          <button id="dawn-interact" class="button button--primary is-hidden" type="button" aria-hidden="true">Взаимодействовать <kbd>E</kbd></button>
+          <button id="pause-button" class="button button--quiet" type="button">Пауза <kbd>Esc</kbd></button>
+        </div>
+      </section>
+
+      <section id="safe-panel" class="safe-panel panel is-hidden" role="dialog" aria-labelledby="safe-title" aria-hidden="true" inert>
+        <h2 id="safe-title">Сейф · 10 цифр</h2>
+        <p>Паук продолжает идти. Esc — закрыть и бежать.</p>
+        <p id="safe-notes">Записок пока нет.</p>
+        <form id="safe-form">
+          <label for="safe-code">Код по порядку позиций</label>
+          <input id="safe-code" type="text" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" minlength="10" autocomplete="off" required aria-describedby="safe-error" />
+          <p id="safe-error" role="status"></p>
+          <button class="button button--primary" type="submit">Открыть сейф</button>
+        </form>
+        <button id="safe-close" class="text-button" type="button">Закрыть и бежать</button>
+      </section>
+
+      <section id="secret" class="secret is-hidden" role="dialog" aria-modal="true" aria-label="Секретная концовка" aria-hidden="true"><div class="secret__text"><p id="secret-line"></p><p id="secret-found" class="secret__found"></p><button id="secret-back" class="secret__back" type="button">Вернуться в меню</button></div></section>
+      <p id="bark" class="bark is-hidden" aria-live="assertive"></p>
+      <div id="sanity" class="sanity is-hidden" aria-hidden="true"></div>
+      <p id="calm-prompt" class="calm-prompt is-hidden" aria-live="polite"></p>
+      <div id="cutscene" class="cutscene is-hidden" aria-live="polite">
+        <p id="cutscene-subtitle" class="cutscene__subtitle"></p>
+        <div id="cutscene-choice" class="cutscene__choice is-hidden" role="group" aria-label="Что я делаю?"></div>
+        <button id="cutscene-skip" class="cutscene__skip" type="button">Пропустить · Enter</button>
+      </div>
+      <div id="wave-notice" class="wave-notice is-hidden" aria-live="polite" aria-atomic="true"><span class="eyebrow">ДВИЖЕНИЕ ОБНАРУЖЕНО</span><strong id="notice-title">Волна 1 из 2</strong><p id="notice-description">Держите дистанцию.</p></div>
+
+      <section id="campaign-panel" class="screen overlay is-hidden" role="dialog" aria-modal="true" aria-labelledby="campaign-title" aria-describedby="campaign-text" aria-hidden="true" inert>
+        <div class="panel campaign-card">
+          <p id="campaign-eyebrow" class="campaign-card__eyebrow">ГЛАВА 1 / 3 · ВСТУПЛЕНИЕ</p>
+          <h2 id="campaign-title" class="campaign-card__title">Ночная палата</h2>
+          <div id="campaign-text" class="campaign-card__text"></div>
+          <button id="campaign-continue" class="button button--primary campaign-card__continue" type="button">Начать зачистку →</button>
+          <button class="text-button" data-action="menu" type="button">Вернуться в меню</button>
+        </div>
+      </section>
+
+      <section id="pause-menu" class="screen overlay is-hidden" role="dialog" aria-modal="true" aria-labelledby="pause-title" aria-hidden="true">
+        <div class="panel dialog">
+          <span class="eyebrow"><span class="signal-dot"></span>ПЕРЕДЫШКА</span>
+          <h2 id="pause-title">Замрите.<br /><span>Они подождут.</span></h2>
+          <p id="pause-description">Игра на паузе. Переведите дыхание и возвращайтесь.</p>
+          <button id="resume-button" class="button button--primary" type="button">Продолжить →</button>
+          <button id="pause-restart-button" class="button" data-action="restart" type="button">Начать заново</button>
+          <button class="text-button" data-action="menu" type="button">Вернуться в меню</button>
+          <p class="dialog__hint"><kbd>Esc</kbd> — продолжить</p>
+        </div>
+      </section>
+
+      <section id="result" class="screen overlay is-hidden" role="dialog" aria-modal="true" aria-labelledby="result-title" aria-hidden="true">
+        <div class="panel dialog result-card">
+          <span id="result-eyebrow" class="eyebrow">ПОБЕГ ЗАВЕРШЁН</span>
+          <h2 id="result-title">Снаружи светает.</h2>
+          <p id="result-description">Палата, карантин и насосная позади. Вы выбрались к рассвету.</p>
+          <ul id="result-journal" class="result-journal is-hidden"></ul>
+          <p id="sequel-teaser" class="sequel-teaser is-hidden" aria-hidden="true">Этап II · За стенами карантина<br /><strong>Связь на рассвете</strong></p>
+          <button id="dawn-continue" class="button button--primary is-hidden" type="button" aria-hidden="true">Продолжить · этап II →</button>
+          <div class="result-score"><span class="stat-label">Итоговый счёт</span><strong id="result-score">0</strong></div>
+          <dl class="result-stats"><div><dt>Устранено</dt><dd id="result-kills">0</dd></div><div><dt>Карта</dt><dd id="result-wave">3 / 3</dd></div><div><dt>Время боя</dt><dd id="result-time">00:00</dd></div></dl>
+          <button id="chapter-retry" class="button button--primary is-hidden" type="button" aria-hidden="true">Повторить этот эпизод →</button>
+          <button id="restart-button" class="button button--primary" data-action="restart" type="button">Начать заново →</button>
+          <button class="text-button" data-action="menu" type="button">Вернуться в меню</button>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

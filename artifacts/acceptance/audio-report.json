@@ -1,0 +1,44 @@
+{
+  "before": {
+    "audio": {
+      "muted": false,
+      "methods": [
+        "unlock",
+        "setMuted",
+        "setHorrorMode",
+        "play",
+        "silence",
+        "dispose"
+      ]
+    },
+    "contexts": [
+      "suspended"
+    ],
+    "gains": [
+      0.3199999928474426
+    ],
+    "sources": 0
+  },
+  "after": {
+    "audio": {
+      "muted": false,
+      "methods": [
+        "unlock",
+        "setMuted",
+        "setHorrorMode",
+        "play",
+        "silence",
+        "dispose"
+      ]
+    },
+    "contexts": [
+      "suspended"
+    ],
+    "gains": [
+      0.3199999928474426
+    ],
+    "sources": 0,
+    "peak": 0
+  },
+  "errors": []
+}
