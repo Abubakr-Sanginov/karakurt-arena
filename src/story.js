@@ -114,6 +114,6 @@ export function outroNotes(mapIndex, { spared = [], dead = [] } = {}) {
   if (spared.length && !dead.length) lines.push('На плече всё ещё чувствуется тепло чужой руки. Страшно, но я не жалею, что не нажал на спуск.');
   if (dead.length === 1) lines.push(`${personInfo(dead[0]).name} лежит там, где упал. Я стараюсь не оборачиваться.`);
   if (dead.length > 1) lines.push(`Я убил ${dead.length}. Я помню их имена: ${namesOf(dead, 3).join(', ')}. Руки не слушаются.`);
-  if (mapIndex === 2 && spared.length >= 3) lines.push('Рация на поясе хрипит голосом Нины: «Я слышала, ты никого не тронул. Спасибо. Жду во дворе».');
+  if (mapIndex === 2 && spared.length >= 3) lines.push('Рация на поясе хрипит чужим голосом: «Если ты правда никого не тронул, спасибо. Жди во дворе».');
   return lines;
 }

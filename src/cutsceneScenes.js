@@ -367,6 +367,7 @@ function buildCar(k, m, x) {
   const glass = k.own(new THREE.MeshPhysicalMaterial({ color: 0x8fb4c4, metalness: 0.1, roughness: 0.05, transparent: true, opacity: 0.32, depthWrite: false }));
   const chrome = mat(0xc9d0d4, { metalness: 0.9, roughness: 0.2 });
   const headLens = k.own(m.head);
+  const tires = [];
   // Body shell: an extruded side profile with a bevel gives a smooth sedan silhouette.
   const profile = new THREE.Shape();
   profile.moveTo(-2.22, 0.34); profile.lineTo(-2.4, 0.46); profile.lineTo(-2.42, 0.74); profile.quadraticCurveTo(-2.4, 0.86, -2.16, 0.9);
@@ -395,10 +396,12 @@ function buildCar(k, m, x) {
     box(car, [0.4, 0.17, 0.08], [sx * 0.66, 0.78, -2.5], chrome); box(car, [0.36, 0.13, 0.09], [sx * 0.66, 0.78, -2.52], headLens);
     box(car, [0.38, 0.14, 0.06], [sx * 0.7, 0.8, 2.52], m.tail); box(car, [0.1, 0.16, 0.1], [sx * 0.98, 0.78, -2.3], mat(0xffb347, { emissive: 0xffa11a, emissiveIntensity: 0.1 }));
     for (const z of [-1.5, 1.5]) {
-      cyl(car, 0.38, 0.26, [sx * 0.95, 0.38, z], m.rubber, [0, 0, Math.PI / 2]);
-      cyl(car, 0.25, 0.28, [sx * 0.96, 0.38, z], chrome, [0, 0, Math.PI / 2]);
-      cyl(car, 0.1, 0.3, [sx * 0.98, 0.38, z], trim, [0, 0, Math.PI / 2]);
-      for (let a = 0; a < 5; a++) { const spoke = box(car, [0.02, 0.4, 0.045], [sx * 0.97, 0.38, z], chrome); spoke.rotation.x = a * Math.PI / 5; }
+      // One group per wheel so the whole wheel (tyre, rim, hub, spokes) can spin; the arch trim stays on the body.
+      const tire = group(car, 'tire', sx * 0.95, 0.38, z); tires.push(tire);
+      cyl(tire, 0.38, 0.26, [0, 0, 0], m.rubber, [0, 0, Math.PI / 2]);
+      cyl(tire, 0.25, 0.28, [0.01, 0, 0], chrome, [0, 0, Math.PI / 2]);
+      cyl(tire, 0.1, 0.3, [0.03, 0, 0], trim, [0, 0, Math.PI / 2]);
+      for (let a = 0; a < 5; a++) { const spoke = box(tire, [0.02, 0.4, 0.045], [0.02, 0, 0], chrome); spoke.rotation.x = a * Math.PI / 5; }
       cyl(car, 0.44, 0.1, [sx * 0.88, 0.52, z], trim, [0, 0, Math.PI / 2]);
     }
   }
@@ -425,24 +428,26 @@ function buildCar(k, m, x) {
     box(hinge, [0.08, 0.04, 0.3], [sx * 0.04, 0.98, 1.2], chrome);
     doors[name] = hinge;
   }
-  return { car, wheel, doors, roof };
+  return { car, wheel, doors, roof, tires };
 }
 
 function carRide(k) {
-  const { root, box, cyl, ball, group, mat, glow } = k;
+  const { root, mat } = k;
   const m = buildStreet(k);
   const dust = k.dustMotes(90, 8, 0xfff0d0, 0.4);
-  const { car, wheel, doors } = buildCar(k, m, -2.2);
+  const { car, wheel, doors, tires } = buildCar(k, m, -2.2);
   const nina = k.model(root, 'human', { variant: 'medic' });
   const hero = k.model(root, 'human', { variant: 'hero' });
   for (const h of [nina, hero]) h.getObjectByName('visible-carbine').visible = false;
-  // Humans enter the car by walking to the doors; once seated they ride on the car.
+  // The wound in the hero's side: a dark red patch on the jacket that he presses a hand to.
+  k.box(hero.userData.modelRig.body, [0.16, 0.2, 0.02], [-0.1, 1.12, 0.17], mat(0x6e1a16)).castShadow = false;
   const SEAT = { driver: [-0.45, 0.68, 0.5], passenger: [0.45, 0.68, 0.5] };
   const carBase = { x: -2.2 };
-  const dist = (time) => 128 * smooth(span(time, 11.2, 24.4));
+  const STOP = 138;                                          // the car stops a few steps from the hospital entrance
+  const dist = (time) => STOP * smooth(span(time, 11.2, 24.4));
   const carZ = (time) => -dist(time);
+  const stopZ = -STOP, entranceZ = -146.2;
   function walkTo(h, points, from, speed, time) {
-    // Piecewise path walking at `speed` starting at `from`. Returns {done}
     const t = Math.max(0, time - from);
     let remaining = t * speed, x = points[0][0], z = points[0][1], yaw = h.rotation.y, moving = t > 0;
     let done = false;
@@ -452,8 +457,7 @@ function carRide(k) {
       if (remaining <= len) { x += (px - x) * remaining / len; z += (pz - z) * remaining / len; remaining = 0; break; }
       remaining -= len; x = px; z = pz; if (i === points.length - 1) { done = true; moving = false; }
     }
-    h.position.set(x, 0, z); h.rotation.y = yaw;
-    return { done, moving: moving && !done, x, z };
+    return { done, moving: moving && !done, x, z, yaw };
   }
   function seat(h, name, u, slump) {
     const rig = h.userData.modelRig;
@@ -466,6 +470,9 @@ function carRide(k) {
     rig.body.rotation.x += slump * u; rig.head.rotation.x += 0.25 * slump * u; rig.head.rotation.z += 0.18 * slump * u;
   }
   const doorOpen = (time, a, b, c, d) => smooth(span(time, a, b)) * (1 - smooth(span(time, c, d)));
+  // After the stop: Nina steps out, runs round the back to the passenger side, and the two walk to the entrance together.
+  const T_STOP = 24.4, T_NINA_OUT = 25.4, T_HERO_OUT = 27.0, T_WALK = 31.4;
+  const NINA_ROUND = [[-3.8, 0.6], [-4.0, 3.4], [-0.1, 3.4], [-0.1, 0.5]];     // relative to the stopped car
   return {
     fog: { color: 0xf1cba2, near: 70, far: 300 },
     update(time, camera) {
@@ -473,53 +480,87 @@ function carRide(k) {
       m.sun.follow(carBase.x, 0, z);
       const speed = Math.max(0, (carZ(time - 0.05) - carZ(time + 0.05)) / 0.1);
       const braking = time > 21.5 ? smooth(span(time, 21.5, 24.0)) * (1 - smooth(span(time, 24.0, 24.6))) : 0;
-      car.position.set(carBase.x, 0, z);
-      car.rotation.x = -0.02 * braking * (speed > 0.5 ? 1 : 0);
-      car.position.y = Math.sin(time * 38) * 0.004 * (time > 11 ? 1 : 0) + Math.sin(time * 21) * 0.01 * Math.min(1, speed / 12);
+      // The car sways gently, rolls on its springs and noses down when it brakes; the wheels turn with the distance travelled.
+      car.position.set(carBase.x + Math.sin(time * 0.55) * 0.18 * Math.min(1, speed / 10), 0, z);
+      car.rotation.y = Math.cos(time * 0.55) * 0.012 * Math.min(1, speed / 10);
+      car.rotation.x = 0.022 * braking * (speed > 0.5 ? 1 : 0);
+      car.rotation.z = Math.sin(time * 0.55) * 0.006 * Math.min(1, speed / 10);
+      car.position.y = Math.sin(time * 38) * 0.004 * (time > 11 && time < 24.6 ? 1 : 0) + Math.sin(time * 21) * 0.01 * Math.min(1, speed / 12);
+      tires.forEach((tire) => { tire.rotation.x = -dist(time) / 0.38; });
       m.head.emissiveIntensity = time > 11.0 ? 1.6 : 0; m.tail.emissiveIntensity = time > 11.0 ? 0.9 + braking * 1.2 : 0.15;
-      wheel.rotation.z = -0.2;
-      // Doors: Nina's opens on arrival, the passenger door while the hero climbs in.
-      doors.driver.rotation.y = -1.15 * doorOpen(time, 5.6, 6.4, 7.8, 8.4) - 1.15 * doorOpen(time, 24.4, 25.0, 99, 100);
-      doors.passenger.rotation.y = 1.15 * doorOpen(time, 8.6, 9.4, 10.2, 10.8) + 1.15 * doorOpen(time, 24.6, 25.2, 99, 100);
-      // Nina: from the gate to the driver door, then into the seat.
-      const nSeat = smooth(span(time, 6.2, 7.4));
-      const nWalk = walkTo(nina, [[-14.2, 3.1], [-5.8, 3.1], [-3.9, 0.9], [-3.5, 0.0]], 0.2, 1.95 + 0, time);
-      if (nSeat > 0) {
-        nina.position.set(mix(nina.position.x, carBase.x + SEAT.driver[0], nSeat), 0, 0);
-        nina.position.x = mix(-3.5, carBase.x + SEAT.driver[0], nSeat);
-        nina.position.z = z + mix(0.0, SEAT.driver[2], nSeat);
-        nina.position.y = mix(0, SEAT.driver[1] - 0.86, nSeat);
-        nina.rotation.y = mix(nina.rotation.y, Math.PI, nSeat);
+      wheel.rotation.z = -0.2 + Math.sin(time * 0.55 + 1.2) * 0.22 * Math.min(1, speed / 10);
+      const cx = car.position.x;
+      // Doors: Nina's opens when she arrives and again when she leaves, the passenger door for the hero both times.
+      doors.driver.rotation.y = -1.15 * doorOpen(time, 5.6, 6.4, 7.8, 8.4) - 1.15 * doorOpen(time, T_NINA_OUT - 0.5, T_NINA_OUT, T_NINA_OUT + 1.6, T_NINA_OUT + 2.4);
+      doors.passenger.rotation.y = 1.15 * doorOpen(time, 8.6, 9.4, 10.2, 10.8) + 1.15 * doorOpen(time, T_HERO_OUT - 0.6, T_HERO_OUT, T_HERO_OUT + 3.4, T_HERO_OUT + 4.4);
+      // ---- Nina ----
+      const nSeatIn = smooth(span(time, 6.2, 7.4)), nSeatOut = smooth(span(time, T_NINA_OUT, T_NINA_OUT + 0.9));
+      const nSeat = nSeatIn * (1 - nSeatOut);
+      const nWalkIn = walkTo(nina, [[-14.2, 3.1], [-5.8, 3.1], [-3.9, 0.9], [-3.5, 0.0]], 0.2, 1.95, time);
+      const nWalkOut = walkTo(nina, NINA_ROUND.map(([x, zz]) => [carBase.x + x + 2.2, stopZ + zz]), T_NINA_OUT + 0.9, 2.2, time);
+      const ninaOutside = time >= T_NINA_OUT + 0.9;
+      const supporting = time >= T_WALK;
+      let ninaMoving;
+      if (!ninaOutside) {
+        nina.position.set(mix(-3.5, carBase.x + SEAT.driver[0], nSeatIn), mix(0, SEAT.driver[1] - 0.86, nSeatIn), 0);
+        const exitX = mix(carBase.x + SEAT.driver[0], carBase.x - 1.55, nSeatOut), exitZ = mix(SEAT.driver[2], 0.6, nSeatOut), exitY = mix(SEAT.driver[1] - 0.86, 0, nSeatOut);
+        nina.position.x = nSeatOut > 0 ? exitX : nina.position.x; nina.position.y = nSeatOut > 0 ? exitY : nina.position.y;
+        nina.position.z = (nSeatIn < 1 && nSeatOut === 0) ? nWalkIn.z : z + (nSeatOut > 0 ? exitZ : mix(0.0, SEAT.driver[2], nSeatIn));
+        nina.rotation.y = nSeatIn < 1 ? mix(nWalkIn.yaw, Math.PI, nSeatIn) : Math.PI;
+        if (nSeatIn === 0) nina.position.set(nWalkIn.x, 0, nWalkIn.z);
+        ninaMoving = nWalkIn.moving && nSeatIn < 0.2;
+      } else if (!supporting) { nina.position.set(nWalkOut.x, 0, nWalkOut.z); nina.rotation.y = nWalkOut.done ? Math.PI * 0.5 : nWalkOut.yaw; ninaMoving = nWalkOut.moving; }
+      else {
+        const walk = walkTo(nina, [[carBase.x + 2.2 - 0.1 + 0.55, stopZ + 0.5], [0.5, entranceZ + 0.2]], T_WALK, 0.95, time);
+        nina.position.set(walk.x, 0, walk.z); nina.rotation.y = walk.yaw; ninaMoving = walk.moving;
       }
-      animateHuman(nina, time, nWalk.moving && nSeat < 0.2, { relaxed: true });
+      animateHuman(nina, time, ninaMoving, { relaxed: true });
       seat(nina, 'driver', nSeat, 0);
-      // The hero limps in with a hand pressed to his side and walks round the back of the car.
-      const hSeat = smooth(span(time, 9.4, 10.5));
-      const hWalk = walkTo(hero, [[-13.4, 3.5], [-6.2, 3.5], [-4.3, 3.7], [-0.4, 3.7], [-0.4, 0.2]], 0.2, 1.55, time);
-      if (hSeat > 0) {
-        hero.position.x = mix(-0.4, carBase.x + SEAT.passenger[0], hSeat);
-        hero.position.z = z + mix(0.2, SEAT.passenger[2], hSeat);
-        hero.position.y = mix(0, SEAT.passenger[1] - 0.86, hSeat);
-        hero.rotation.y = mix(hero.rotation.y, Math.PI, hSeat);
+      // ---- the hero: limps in with a hand on his side, rides, climbs out and is helped to the door ----
+      const hSeatIn = smooth(span(time, 9.4, 10.5)), hSeatOut = smooth(span(time, T_HERO_OUT, T_HERO_OUT + 1.2));
+      const hSeat = hSeatIn * (1 - hSeatOut);
+      const hWalkIn = walkTo(hero, [[-13.4, 3.5], [-6.2, 3.5], [-4.3, 3.7], [-0.4, 3.7], [-0.4, 0.2]], 0.2, 1.55, time);
+      const heroOutside = time >= T_HERO_OUT + 1.2;
+      let heroMoving;
+      if (!heroOutside) {
+        if (hSeatIn === 0) hero.position.set(hWalkIn.x, 0, hWalkIn.z);
+        else if (hSeatOut === 0) { hero.position.set(mix(-0.4, carBase.x + SEAT.passenger[0], hSeatIn), mix(0, SEAT.passenger[1] - 0.86, hSeatIn), 0); hero.position.z = z + mix(0.2, SEAT.passenger[2], hSeatIn); }
+        else { hero.position.set(mix(cx + SEAT.passenger[0], cx + 1.55, hSeatOut), mix(SEAT.passenger[1] - 0.86, 0, hSeatOut), z + mix(SEAT.passenger[2], 0.55, hSeatOut)); }
+        hero.rotation.y = hSeatIn === 0 ? hWalkIn.yaw : hSeatOut > 0 ? mix(Math.PI, -Math.PI * 0.5, hSeatOut) : mix(hWalkIn.yaw, Math.PI, hSeatIn);
+        heroMoving = hWalkIn.moving && hSeatIn < 0.2;
+      } else {
+        const toDoor = walkTo(hero, [[carBase.x + 2.2 - 0.1 + 0.35 - 0.0, stopZ + 0.55], [0.0, entranceZ + 0.2]], T_WALK, 0.95, time);
+        const pos = time < T_WALK ? [cx + 1.55, stopZ + 0.55] : [toDoor.x, toDoor.z];
+        hero.position.set(pos[0], 0, pos[1]);
+        hero.rotation.y = time < T_WALK ? -Math.PI * 0.5 : toDoor.yaw;
+        heroMoving = time >= T_WALK && toDoor.moving;
       }
-      animateHuman(hero, time, hWalk.moving && hSeat < 0.2, { relaxed: true });
+      animateHuman(hero, time, heroMoving, { relaxed: true });
       const rig = hero.userData.modelRig;
-      if (hSeat < 1) { rig.body.rotation.z += 0.1; rig.body.rotation.x += 0.16 * (1 - hSeat); rig.arms[0].root.rotation.x = -0.55 * (1 - hSeat) + rig.arms[0].root.rotation.x * hSeat; rig.arms[0].elbow.rotation.x = -1.5 * (1 - hSeat) + rig.arms[0].elbow.rotation.x * hSeat; }
+      const hurt = hSeatIn < 1 || heroOutside ? 1 : 0;
+      if (hurt) { rig.body.rotation.z += 0.1; rig.body.rotation.x += 0.16 * (1 - hSeat); rig.arms[0].root.rotation.x = -0.55; rig.arms[0].elbow.rotation.x = -1.5; rig.head.rotation.x += 0.18; }
       seat(hero, 'passenger', hSeat, 0.3);
-      // Nina glances at the hero while driving; the hero watches the road.
-      if (time > 11) { nina.userData.modelRig.head.rotation.y = Math.PI * 0 + Math.sin(time * 0.7) * 0.25 - 0.3; }
+      if (heroOutside && time >= T_WALK) { rig.body.rotation.x = 0.2; rig.arms[0].root.rotation.set(-0.55, 0, 0.1); rig.arms[0].elbow.rotation.set(-1.5, 0, 0); }
+      // Nina glances at the hero while driving; out of the car she supports him with an arm round his back.
+      if (time > 11 && nSeat > 0.5) nina.userData.modelRig.head.rotation.y = Math.sin(time * 0.7) * 0.25 - 0.3;
+      if (supporting) { const nr = nina.userData.modelRig; nr.arms[1].root.rotation.set(-0.9, 0, -0.5); nr.arms[1].elbow.rotation.set(-0.4, 0, 0); nr.head.rotation.y = -0.4; }
       // ---- camera ----
-      const rel = (x, y, zz) => [carBase.x + x, y, z + zz];
+      const rel = (x, y, zz) => [cx + x, y, z + zz];
       let pos, look;
+      const shake = time > 11 && time < 24.4 ? Math.min(1, speed / 12) * 0.006 : 0;
       if (time < 4.6) { const u = smooth(time / 4.6); pos = mixVec([-11.4, 1.2, -1.6], [-8.4, 1.45, -1.2], u); look = mixVec([-10.4, 1.1, 3.4], [-6.4, 1.0, 3.1], u); }
       else if (time < 9.8) { const u = smooth(span(time, 4.6, 9.8)); pos = mixVec([-1.2, 1.7, 7.4], [-7.0, 1.7, 6.6], u); look = mixVec([-4.2, 1.0, 1.6], [-2.4, 1.0, 1.3], u); }
       else if (time < 14) { const u = smooth(span(time, 9.8, 14)); pos = rel(...mixVec([-0.1, 1.55, -1.9], [0.25, 1.52, -1.5], u)); look = rel(...mixVec([0.0, 1.05, 0.5], [0.0, 1.15, 0.4], u)); }
-      else if (time < 17.6) { const u = smooth(span(time, 14, 17.6)); pos = rel(...mixVec([-5.8, 1.1, -0.2], [-5.0, 1.0, 1.0], u)); look = rel(0, 0.9, 0.2); }
-      else if (time < 21.4) { const u = smooth(span(time, 17.6, 21.4)); pos = rel(...mixVec([1.6, 1.8, 7.8], [0.6, 1.4, 6.0], u)); look = rel(0, 1.1, -3); }
-      else { const u = smooth(span(time, 21.4, 26)); pos = mixVec([8, 1.7, -112], [5.0, 1.5, -121], u); look = mixVec([0, 4.0, -148], [car.position.x, 1.2, z], 0.35 + 0.65 * smooth(span(time, 21.4, 24.4))); }
-      camera.position.set(...pos); camera.lookAt(...look);
+      else if (time < 16.6) { const u = smooth(span(time, 14, 16.6)); pos = rel(...mixVec([-5.8, 1.1, -0.2], [-5.0, 1.0, 1.0], u)); look = rel(0, 0.9, 0.2); }
+      else if (time < 18.6) { const u = smooth(span(time, 16.6, 18.6)); pos = rel(...mixVec([-2.6, 0.45, -3.4], [-2.2, 0.4, -1.4], u)); look = rel(-1.0, 0.4, 0.0); }      // low, at the wheels
+      else if (time < 21.4) { const u = smooth(span(time, 18.6, 21.4)); pos = rel(...mixVec([1.6, 1.8, 7.8], [0.6, 1.4, 6.0], u)); look = rel(0, 1.1, -3); }
+      else if (time < T_STOP + 1.0) { const u = smooth(span(time, 21.4, 25.4)); pos = mixVec([8, 1.7, -120], [5.0, 1.5, -131], u); look = mixVec([0, 4.0, -150], [cx, 1.2, z], 0.35 + 0.65 * smooth(span(time, 21.4, 24.4))); }
+      else if (time < T_HERO_OUT + 2.6) { const u = smooth(span(time, T_STOP + 1.0, T_HERO_OUT + 2.6)); pos = mixVec([cx - 5.4, 1.5, stopZ - 1.0], [cx + 4.6, 1.6, stopZ - 2.2], u); look = [cx, 1.0, stopZ + 1.4]; }
+      else if (time < T_WALK) { pos = [cx + 4.2, 1.5, stopZ + 5.2]; look = [cx + 0.6, 1.1, stopZ + 0.2]; }
+      else { const u = smooth(span(time, T_WALK, 41)); pos = mixVec([-1.8, 1.55, stopZ + 4.2], [-1.0, 1.5, entranceZ + 5.4], u); look = [0.2, 1.4, entranceZ - 3.5]; }
+      camera.position.set(pos[0] + Math.sin(time * 47) * shake, pos[1] + Math.sin(time * 61) * shake, pos[2]); camera.lookAt(...look);
       dust.update(time, camera);
-      k.setScreen(camera, 1 - smooth(span(time, 0, 0.8)) + smooth(span(time, 25.0, 26)));
+      k.setScreen(camera, 1 - smooth(span(time, 0, 0.8)) + smooth(span(time, 39.6, 41)));
     },
     dispose() {},
   };
@@ -906,20 +947,22 @@ function peaceDawn(k, options) {
   sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024); sun.shadow.bias = -0.0004; sun.shadow.radius = 3; root.add(sun, sun.target);
   bedroomShell(k, 'day');
   const hold = (model) => { model.getObjectByName('visible-carbine').visible = false; return model; };
-  const nina = hold(k.model(root, 'human', { variant: 'medic' }));
+  // In this ending Nina did not survive the hospital: the visitor is Lev, the stranger who waited at the quarantine gate.
+  const lev = hold(k.model(root, 'human', { variant: 'civilian', tint: 2 }));
+  k.box(lev.userData.modelRig.body, [0.3, 0.36, 0.14], [0, 1.2, -0.24], k.mat(0x3a4a3a));
   const guestCount = mercy ? clamp((options?.names?.length) || 1, 1, 3) : 0;
   const GUEST_STOPS = [[-0.9, 1.6], [0.1, 2.3], [-1.7, 2.4]];
   const guests = GUEST_STOPS.slice(0, guestCount).map(([x, z], i) => ({
     model: hold(k.model(root, 'human', { variant: 'civilian', tint: i + 1 })), path: [[x * 0.4, 6.2 + i * 0.8], [x, z]],
   }));
   guests.forEach(({ model }) => { model.visible = false; });
-  const NINA_PATH = [[0, 5.9], [0.7, 1.3]];
+  const LEV_PATH = [[0, 5.9], [0.7, 1.3]];
   return {
     update(time, camera) {
-      const nw = walkAlong(NINA_PATH, Math.max(0, (time - 6.5) * 0.9));
-      nina.position.set(nw.x, 0, nw.z); nina.rotation.y = nw.done ? Math.PI + 0.3 : nw.yaw;
-      animateHuman(nina, time, nw.moving, { relaxed: true });
-      if (nw.done) { const t = Math.sin(time * 3) * 0.1; nina.userData.modelRig.arms.forEach(({ root: arm, elbow, side }) => { arm.rotation.set(-0.3 + t * side, 0, side * 0.1); elbow.rotation.set(-0.8, 0, 0); }); }
+      const nw = walkAlong(LEV_PATH, Math.max(0, (time - 6.5) * 0.9));
+      lev.position.set(nw.x, 0, nw.z); lev.rotation.y = nw.done ? Math.PI + 0.3 : nw.yaw;
+      animateHuman(lev, time, nw.moving, { relaxed: true });
+      if (nw.done) { const t = Math.sin(time * 3) * 0.1; lev.userData.modelRig.arms.forEach(({ root: arm, elbow, side }) => { arm.rotation.set(-0.3 + t * side, 0, side * 0.1); elbow.rotation.set(-0.8, 0, 0); }); }
       guests.forEach(({ model, path }, i) => {
         const w = walkAlong(path, Math.max(0, (time - 14.5 - i * 1.2) * 0.9));
         model.visible = time >= 14.5 + i * 1.2;

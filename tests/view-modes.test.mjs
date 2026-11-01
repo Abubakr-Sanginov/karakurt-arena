@@ -319,8 +319,8 @@ test('car ride: the survivors end seated in the car, which stops in front of the
   stage.update(0, camera);
   assert.ok(Math.abs(car().position.z) < 1e-6, 'parked at the start');
   stage.update(24.8, camera);
-  assert.ok(car().position.z < -120 && car().position.z > -135, `car stopped near the hospital, z=${car().position.z}`);
-  stage.update(25.9, camera); const stopped = car().position.z; stage.update(26, camera);
+  assert.ok(car().position.z < -132 && car().position.z > -144, `car stopped by the hospital entrance, z=${car().position.z}`);
+  stage.update(30.9, camera); const stopped = car().position.z; stage.update(31, camera);
   assert.ok(Math.abs(car().position.z - stopped) < 1e-6, 'does not roll on after stopping');
   stage.dispose();
 });
