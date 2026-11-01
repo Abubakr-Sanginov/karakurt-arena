@@ -29,6 +29,21 @@ export const CUTSCENES = Object.freeze({
       { from: 23.0, to: 25.4, text: 'Нина: «Приехали. Идём быстро и тихо».' },
     ]),
   }),
+  // ---- Bonus story: who the stranger is (menu button). Lev Vetrov, the ambulance driver whose wife Lena waited in ward 3. ----
+  'stranger': Object.freeze({
+    duration: 46,
+    subtitles: Object.freeze([
+      { from: 2.0, to: 6.2, text: 'Лев: «Меня зовут Лев Ветров. Я водитель скорой. Двенадцать лет вожу людей в больницы».' },
+      { from: 6.8, to: 11.0, text: 'Лев: «В ту ночь мою жену Лену положили в третью палату. „Просто обследование“, сказали».' },
+      { from: 11.6, to: 15.6, text: 'Лев: «Потом закрыли карантин. Меня не пустили. Телефон молчал трое суток».' },
+      { from: 16.2, to: 20.2, text: 'Лев: «Я шёл пешком через весь город. Пустые улицы. Ни машин, ни людей».' },
+      { from: 20.8, to: 25.0, text: 'Лев: «У поста связи я встретил Нину. Она сказала, что внутри остались выжившие».' },
+      { from: 25.6, to: 29.8, text: 'Лев: «Я ждал у ворот. Если Лена жива, она выйдет. Если нет, я хотя бы увижу её».' },
+      { from: 30.4, to: 34.6, text: 'Лев: «Утром вышел человек с карабином. Он был не в себе. Рядом с ним шла Нина».' },
+      { from: 35.2, to: 39.6, text: 'Лев: «Я не знал, что он сделал внутри. Я знал одно: он не должен причинить вред Нине».' },
+      { from: 40.2, to: 45.0, text: 'Лев: «Я пошёл за их машиной. Что было дальше, ты уже видел».' },
+    ]),
+  }),
   // ---- Story branch when the hero has killed infected people (see main.js startMadnessEnding) ----
   'madness-drive': Object.freeze({
     duration: 80,
@@ -56,7 +71,8 @@ export const CUTSCENES = Object.freeze({
       { from: 58.6, to: 61.2, text: 'Я: «ТЫ. ТЫ ТОЖЕ ПАУК».' },
       { from: 61.6, to: 65.4, text: 'Нина: «Ты с ума сходишь? Опусти оружие, иначе я выстрелю!»' },
       { from: 65.8, to: 67.7, text: 'Я: «Ты не человек…»' },
-      { from: 69.0, to: 72.0, text: 'Незнакомец: «Готово. Он бы убил нас обоих».' },
+      { from: 69.0, to: 72.0, text: 'Незнакомец: «Готово. Он бы убил нас обоих».', unless: 'wifeDead' },
+      { from: 69.0, to: 72.0, text: 'Лев: «Это ты убил Лену. Я видел тебя в карантине. Больше ты никого не тронешь».', if: 'wifeDead' },
       { from: 72.4, to: 75.6, text: 'Нина: «Вяжи руки, быстрее. Пока не очнулся».' },
       { from: 76.4, to: 79.6, text: 'Нина: «В багажник. Довезём, а там решим».' },
     ]),
@@ -71,6 +87,7 @@ export const CUTSCENES = Object.freeze({
       mercy: Object.freeze({
         duration: 44, cues: Object.freeze([{ at: 18.0, type: 'win' }]),
         subtitles: Object.freeze([
+          { from: 36.0, to: 42.0, text: 'Лев: «Лена в больнице, она узнала меня. Спасибо, что не выстрелил. Я теперь твой должник».', if: 'wifeSpared' },
           { from: 3.0, to: 6.4, text: 'Утро. Впервые за много дней я просыпаюсь без кошмара.' },
           { from: 7.4, to: 11.0, text: 'Нина: «Тебе звонили из карантина. Те, кого ты успокоил, пришли в себя».' },
           { from: 12.0, to: 15.6, text: 'Нина: «{list}. Они спрашивают, кто к ним подошёл».' },
@@ -202,6 +219,7 @@ export function fillNames(text, names = []) {
 export function subtitleAt(id, time, options) {
   const scene = CUTSCENES[id];
   const lines = [...(scene?.subtitles ?? []), ...(branchOf(id, options)?.subtitles ?? [])];
-  const line = lines.find(({ from, to }) => time >= from && time < to);
+  const shown = lines.filter((line) => (!line.if || options?.flags?.[line.if]) && (!line.unless || !options?.flags?.[line.unless]));
+  const line = shown.find(({ from, to }) => time >= from && time < to);
   return line ? fillNames(line.text, options?.names) : '';
 }

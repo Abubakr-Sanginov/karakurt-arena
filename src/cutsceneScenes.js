@@ -940,7 +940,38 @@ function peaceDawn(k, options) {
   };
 }
 
-const BUILDERS = { 'peace-dawn': peaceDawn, 'madness-drive': madnessDrive, 'madness-home': madnessHome, 'madness-police': madnessPolice,  'wake-up': wakeUp, 'boss-intro': bossIntro, 'car-ride': carRide };
+// ============================================================================
+// Bonus story: Lev, the stranger, walks to the quarantine hospital
+// ============================================================================
+function strangerStory(k) {
+  const { root } = k;
+  const m = buildStreet(k);
+  const dust = k.dustMotes(90, 8, 0xfff0d0, 0.4);
+  const lev = k.model(root, 'human', { variant: 'civilian', tint: 2 });
+  lev.getObjectByName('visible-carbine').visible = false;
+  k.box(lev.userData.modelRig.body, [0.3, 0.36, 0.14], [0, 1.2, -0.24], k.mat(0x3a4a3a));
+  const PATH = [[-4.6, 12], [-4.6, -112]];
+  return {
+    fog: { color: 0xe9bf9a, near: 45, far: 220 },
+    update(time, camera) {
+      const w = walkAlong(PATH, time * 2.7);
+      m.sun.follow(w.x, 0, w.z);
+      lev.position.set(w.x, 0, w.z); lev.rotation.y = Math.PI;
+      animateHuman(lev, time, w.moving, { relaxed: true });
+      let pos, look;
+      if (time < 10) { pos = [w.x + 6.5, 1.5, w.z + 3]; look = [w.x, 1.3, w.z - 1.5]; }
+      else if (time < 22) { pos = [w.x + 0.7, 1.75, w.z + 4.4]; look = [w.x, 1.4, w.z - 3]; }
+      else if (time < 34) { pos = [w.x + 1.4, 1.1, w.z - 4.2]; look = [w.x, 1.55, w.z]; }
+      else { pos = [w.x + 8, 2.4, w.z + 10]; look = [w.x, 1.4, w.z - 6]; }
+      camera.position.set(...pos); camera.lookAt(...look);
+      dust.update(time, camera);
+      k.setScreen(camera, Math.max(1 - smooth(span(time, 0, 1.3)), smooth(span(time, 44, 46))), 1, 0);
+    },
+    dispose() {},
+  };
+}
+
+const BUILDERS = { 'stranger': strangerStory, 'peace-dawn': peaceDawn, 'madness-drive': madnessDrive, 'madness-home': madnessHome, 'madness-police': madnessPolice,  'wake-up': wakeUp, 'boss-intro': bossIntro, 'car-ride': carRide };
 
 /** One cutscene stage: owns its objects; update(time, camera) poses everything from the held time. */
 export function createCutsceneStage(id, options = {}) {

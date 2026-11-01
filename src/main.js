@@ -314,7 +314,7 @@ function startMadnessEnding() {
   const kills = Math.min(6, state.infectedKills || 1);
   const chain = ['madness-drive', 'madness-home', 'madness-police'];
   // One options object for the whole chain: the police scene writes the player's answer into it.
-  const options = { kills, names: namesOf(state.infectedDead), branch: null };
+  const options = { kills, names: namesOf(state.infectedDead), branch: null, flags: { wifeDead: state.infectedDead.includes('ward-patient-east') } };
   // Each scene may end on a question; its answer is read here and cleared so the next scene can ask its own.
   const next = (index, answer = null) => {
     if (index === 2 && answer === 'call') { showMadnessEnding('call'); return; }
@@ -752,7 +752,7 @@ function finishGame() {
   if (sequelState?.complete && !sequelState.lost && sequelState.chapter === 'home' && !epiloguePlayed) {
     epiloguePlayed = true;
     const spared = state.infectedSpared || [];
-    startCutscene('peace-dawn', finishGame, { kills: 0, names: namesOf(spared), branch: spared.length ? 'mercy' : 'alone' });
+    startCutscene('peace-dawn', finishGame, { kills: 0, names: namesOf(spared), branch: spared.length ? 'mercy' : 'alone', flags: { wifeSpared: spared.includes('ward-patient-east') } });
     return;
   }
   const won = sequelState ? sequelState.complete && !sequelState.lost : state.campaign.stage === 'complete';
@@ -1031,6 +1031,7 @@ window.addEventListener('pagehide', (event) => {
   audioCall('dispose');
 });
 
+byId('stranger-button').addEventListener('click', () => { if (phase === 'menu') startCutscene('stranger', returnToMenu); });
 // Secret ending: click the SHARROWKIN credit in the menu footer. A joke ending, nothing is stored.
 {
   const secret = byId('secret'), line = byId('secret-line'), found = byId('secret-found'), back = byId('secret-back');

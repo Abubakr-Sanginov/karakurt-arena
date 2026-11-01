@@ -308,12 +308,13 @@ test('a JavaScript render error is not reported as missing WebGL', () => {
 });
 
 test('cutscenes: data is consistent and every stage builds, poses all through its length and disposes', () => {
-  assert.deepEqual(Object.keys(CUTSCENES).sort(), ['boss-intro', 'car-ride', 'madness-drive', 'madness-home', 'madness-police', 'peace-dawn', 'wake-up']);
+  assert.deepEqual(Object.keys(CUTSCENES).sort(), ['boss-intro', 'car-ride', 'madness-drive', 'madness-home', 'madness-police', 'peace-dawn', 'stranger', 'wake-up']);
   for (const [id, scene] of Object.entries(CUTSCENES)) {
     assert.ok(scene.duration > 5, id);
     assert.equal(cutsceneDuration(id), scene.duration);
     let last = 0;
     for (const line of scene.subtitles) {
+      if (line.if) continue;
       assert.ok(line.from >= last && line.to > line.from && line.to <= scene.duration, `${id}: subtitle timing`);
       assert.ok(line.text.length > 5);
       assert.equal(subtitleAt(id, (line.from + line.to) / 2), fillNames(line.text));
@@ -498,4 +499,16 @@ test('new endings: calling Nina and the peaceful epilogue both build, play throu
   assert.equal(lastPresentation().duration, 66);
   skip(); app.frame();
   assert.equal(app.elements['result-title'].textContent, 'Двое в тишине.', 'calling Nina skips the police station');
+});
+
+test('the stranger: his story plays, and his lines change with what happened to his wife', () => {
+  const dead = { names: ['Лена Ветрова'], branch: 'gun', flags: { wifeDead: true } };
+  assert.match(subtitleAt('madness-drive', 70, dead), /убил Лену/);
+  assert.match(subtitleAt('madness-drive', 70, { names: ['Игорь'], flags: {} }), /убил нас обоих/);
+  assert.match(subtitleAt('peace-dawn', 38, { branch: 'mercy', names: ['Лена'], flags: { wifeSpared: true } }), /Лена в больнице/);
+  assert.match(subtitleAt('peace-dawn', 38, { branch: 'mercy', names: ['Лена'], flags: {} }), /Ночь закончилась/);
+  const app = mainHarness({ stored: 'third' });
+  app.elements['stranger-button'].emit('click');
+  const shown = [...app.calls].reverse().find(([name]) => name === 'setPresentation')?.[1];
+  assert.equal(shown?.id, 'stranger');
 });
