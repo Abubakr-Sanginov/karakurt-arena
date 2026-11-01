@@ -504,3 +504,13 @@ test('the stranger walks past the abandoned cars, never through them', () => {
   }
   stage.dispose();
 });
+
+test('one person killed: the madness scenes speak in the singular, several: in the plural', () => {
+  const one = { names: ['Игорь Савельев'], branch: 'gun', flags: { one: true } }, many = { names: ['Игорь', 'Лена'], branch: 'gun', flags: { one: false } };
+  assert.match(subtitleAt('madness-drive', 40, one), /человека.*Он не двигался/);
+  assert.match(subtitleAt('madness-drive', 40, many), /в людей.*Они не двигались/);
+  assert.match(subtitleAt('madness-drive', 20.5, one), /Опять он/);
+  assert.match(subtitleAt('madness-police', 5, one), /Я убил человека/);
+  assert.match(subtitleAt('madness-police', 5, many), /Я убил людей/);
+  assert.match(subtitleAt('madness-police', 44, { branch: 'help', names: ['Игорь'], flags: { one: true } }), /назову его/);
+});

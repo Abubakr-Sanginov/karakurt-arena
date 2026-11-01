@@ -293,7 +293,7 @@ function startMadnessEnding() {
   const kills = Math.min(6, state.infectedKills || 1);
   const chain = ['madness-drive', 'madness-home', 'madness-police'];
   // One options object for the whole chain: the police scene writes the player's answer into it.
-  const options = { kills, names: namesOf(state.infectedDead), branch: null, flags: { wifeDead: state.infectedDead.includes('ward-patient-east') } };
+  const options = { kills, names: namesOf(state.infectedDead), branch: null, flags: { wifeDead: state.infectedDead.includes('ward-patient-east'), one: (state.infectedKills || 1) === 1 } };
   // Each scene may end on a question; its answer is read here and cleared so the next scene can ask its own.
   const next = (index, answer = null) => {
     if (index === 2 && answer === 'call') { showMadnessEnding('call'); return; }
@@ -1051,7 +1051,7 @@ try {
   const preview = previewParams.get('cutscene');
   if (preview && CUTSCENES[preview]) requestAnimationFrame(() => {
     const kills = Number(previewParams.get('kills')) || 1;
-    startCutscene(preview, returnToMenu, { kills, names: namesOf(Object.keys(PEOPLE), kills), branch: previewParams.get('branch') || null });
+    startCutscene(preview, returnToMenu, { kills, names: namesOf(Object.keys(PEOPLE), kills), branch: previewParams.get('branch') || null, flags: { one: kills === 1 } });
     const at = Number(previewParams.get('t'));
     if (Number.isFinite(at) && at > 0) presentation.time = Math.min(at, cutsceneDuration(preview, presentation.options));
   });
