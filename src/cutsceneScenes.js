@@ -413,7 +413,7 @@ function buildCar(k, m, x) {
   box(car, [1.7, 0.1, 4.4], [0, 0.3, 0], trim);
   // interior
   for (const sx of [-0.45, 0.45]) {
-    box(car, [0.5, 0.16, 0.58], [sx, 0.66, 0.55], m.seat); box(car, [0.5, 0.68, 0.12], [sx, 0.98, 0.88], m.seat); box(car, [0.22, 0.2, 0.1], [sx, 1.42, 0.9], m.seat);
+    box(car, [0.5, 0.16, 0.58], [sx, 0.66, 0.55], m.seat); box(car, [0.5, 0.42, 0.12], [sx, 0.86, 0.88], m.seat); box(car, [0.22, 0.12, 0.1], [sx, 1.14, 0.9], m.seat);
   }
   box(car, [0.4, 0.5, 0.7], [0, 0.66, 0.2], trim);
   box(car, [1.7, 0.28, 0.5], [0, 0.97, -0.42], trim); box(car, [1.5, 0.05, 0.3], [0, 1.13, -0.4], mat(0x252a30));
@@ -552,8 +552,8 @@ function carRide(k) {
       if (time < 4.6) { const u = smooth(time / 4.6); pos = mixVec([-11.4, 1.2, -1.6], [-8.4, 1.45, -1.2], u); look = mixVec([-10.4, 1.1, 3.4], [-6.4, 1.0, 3.1], u); }
       else if (time < 9.8) { const u = smooth(span(time, 4.6, 9.8)); pos = mixVec([-1.2, 1.7, 7.4], [-7.0, 1.7, 6.6], u); look = mixVec([-4.2, 1.0, 1.6], [-2.4, 1.0, 1.3], u); }
       // inside the car: first in profile through the passenger window, then from above the bonnet so the dashboard no longer cuts them off
-      else if (time < 12.4) { const u = smooth(span(time, 9.8, 12.4)); pos = rel(...mixVec([2.7, 2.6, -1.5], [2.3, 2.5, -0.7], u)); look = rel(-0.05, 1.2, 0.5); }
-      else if (time < 14) { const u = smooth(span(time, 12.4, 14)); pos = rel(...mixVec([0.9, 2.6, -2.9], [0.3, 2.5, -2.4], u)); look = rel(0, 1.2, 0.5); }
+      else if (time < 12.4) { const u = smooth(span(time, 9.8, 12.4)); pos = rel(...mixVec([2.0, 3.2, -1.3], [1.6, 3.1, -0.3], u)); look = rel(-0.05, 1.05, 0.45); }
+      else if (time < 14) { const u = smooth(span(time, 12.4, 14)); pos = rel(...mixVec([0.7, 2.5, 3.3], [0.2, 2.3, 2.7], u)); look = rel(0, 1.25, -0.9); }   // from behind and above, over their shoulders: no bonnet in the way
       else if (time < 16.6) { const u = smooth(span(time, 14, 16.6)); pos = rel(...mixVec([-5.8, 1.1, -0.2], [-5.0, 1.0, 1.0], u)); look = rel(0, 0.9, 0.2); }
       else if (time < 18.6) { const u = smooth(span(time, 16.6, 18.6)); pos = rel(...mixVec([-2.6, 0.45, -3.4], [-2.2, 0.4, -1.4], u)); look = rel(-1.0, 0.4, 0.0); }      // low, at the wheels
       else if (time < 21.4) { const u = smooth(span(time, 18.6, 21.4)); pos = rel(...mixVec([1.6, 1.8, 7.8], [0.6, 1.4, 6.0], u)); look = rel(0, 1.1, -3); }
