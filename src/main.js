@@ -1023,9 +1023,6 @@ byId('stranger-button').addEventListener('click', () => { if (phase === 'menu') 
   document.addEventListener('keydown', (event) => { if (event.code === 'Escape' && secret.classList.contains('is-hidden') === false) close(); });
 }
 
-// Loaded 3D people for the infected (public/models/survivors, Kenney CC0). Optional: the built-in models are used until they arrive or if they fail.
-try { import('./assetHumans.js').then((module) => module.preloadAssetHumans()).then((ok) => { if (ok && phase !== 'playing' && phase !== 'presentation') view?.refreshScenery?.(); }).catch(() => {}); } catch { /* no dynamic import (tests) */ }
-
 setPhase('menu');
 updateMute();
 updateViewChoice();

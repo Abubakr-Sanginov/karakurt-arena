@@ -1474,9 +1474,7 @@ export function createView(canvas) {
   flashMesh.visible = false;
   reticle.visible = false;
   damagePlane.visible = false;
-  /** Rebuild the scenery on the next frame (used when the loaded 3D people arrive after the menu scene was already built). */
-  function refreshScenery() { if (!disposed) activeMap = undefined; }
-  return { sampleInput, render, setPresentation, setViewMode, setHorrorMode, reset, dispose, refreshScenery,
+  return { sampleInput, render, setPresentation, setViewMode, setHorrorMode, reset, dispose,
     sampleJourneyInput() {
       if (!dawnInputAllowed()) return { moveX: 0, moveZ: 0, interact: false };
       const down = (...codes) => codes.some(code => dawnKeys.has(code)) ? 1 : 0;
