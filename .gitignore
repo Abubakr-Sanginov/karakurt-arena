@@ -2,3 +2,4 @@ node_modules
 dist
 .sharrowkin
 .playwright-mcp
+brag-output
