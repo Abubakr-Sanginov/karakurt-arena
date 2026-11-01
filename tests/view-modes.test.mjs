@@ -481,7 +481,7 @@ test('the stranger: his story plays, and his lines change with what happened to 
   const dead = { names: ['Лена Ветрова'], branch: 'gun', flags: { wifeDead: true } };
   assert.match(subtitleAt('madness-drive', 70, dead), /убил Лену/);
   assert.match(subtitleAt('madness-drive', 70, { names: ['Игорь'], flags: {} }), /убил нас обоих/);
-  assert.match(subtitleAt('peace-dawn', 38, { branch: 'mercy', names: ['Лена'], flags: { wifeSpared: true } }), /Лена в больнице/);
+  assert.match(subtitleAt('peace-dawn', 38, { branch: 'mercy', names: ['Лена'], flags: { wifeSpared: true } }), /Лена среди них/);
   assert.match(subtitleAt('peace-dawn', 38, { branch: 'mercy', names: ['Лена'], flags: {} }), /Ночь закончилась/);
   const app = mainHarness({ stored: 'third' });
   app.elements['stranger-button'].emit('click');
