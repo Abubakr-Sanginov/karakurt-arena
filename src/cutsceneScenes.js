@@ -371,7 +371,9 @@ function buildCar(k, m, x) {
   // Body shell: an extruded side profile with a bevel gives a smooth sedan silhouette.
   const profile = new THREE.Shape();
   profile.moveTo(-2.22, 0.34); profile.lineTo(-2.4, 0.46); profile.lineTo(-2.42, 0.74); profile.quadraticCurveTo(-2.4, 0.86, -2.16, 0.9);
-  profile.quadraticCurveTo(-1.4, 0.98, -0.7, 1.03); profile.lineTo(1.1, 1.03); profile.quadraticCurveTo(1.7, 1.02, 2.2, 0.96);
+  profile.quadraticCurveTo(-1.4, 0.98, -0.7, 1.03);
+  // The cabin is hollow: the body drops to the floor between the dashboard wall and the rear seat wall instead of being a solid red slab.
+  profile.lineTo(-0.62, 1.03); profile.lineTo(-0.62, 0.38); profile.lineTo(1.0, 0.38); profile.lineTo(1.0, 1.03); profile.lineTo(1.1, 1.03); profile.quadraticCurveTo(1.7, 1.02, 2.2, 0.96);
   profile.quadraticCurveTo(2.42, 0.9, 2.42, 0.7); profile.lineTo(2.4, 0.46); profile.lineTo(2.22, 0.34); profile.lineTo(-2.22, 0.34);
   const shellGeometry = k.own(new THREE.ExtrudeGeometry(profile, { depth: 1.6, bevelEnabled: true, bevelThickness: 0.12, bevelSize: 0.12, bevelSegments: 5, curveSegments: 14 }));
   shellGeometry.computeVertexNormals();
@@ -411,7 +413,8 @@ function buildCar(k, m, x) {
   box(car, [0.5, 0.12, 0.02], [0, 0.5, -2.55], mat(0xe8e6d8)); box(car, [0.5, 0.12, 0.02], [0, 0.5, 2.5], mat(0xe8e6d8));
   box(car, [1.9, 0.16, 0.14], [0, 0.42, -2.45], chrome); box(car, [1.9, 0.16, 0.14], [0, 0.42, 2.45], chrome);
   box(car, [1.7, 0.1, 4.4], [0, 0.3, 0], trim);
-  // interior
+  // interior: dark floor mat and body sills along both sides so the cabin reads as a room with walls
+  box(car, [1.62, 0.03, 1.62], [0, 0.4, 0.2], mat(0x1b1e22)); for (const sx of [-1, 1]) box(car, [0.12, 0.2, 1.66], [sx * 0.9, 0.5, 0.2], paint);
   for (const sx of [-0.45, 0.45]) {
     box(car, [0.5, 0.16, 0.58], [sx, 0.66, 0.55], m.seat); box(car, [0.5, 0.42, 0.12], [sx, 0.86, 0.88], m.seat); box(car, [0.22, 0.12, 0.1], [sx, 1.14, 0.9], m.seat);
   }
