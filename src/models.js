@@ -751,7 +751,7 @@ export function animateHuman(group, time, moving, options = {}) {
   // The gun and shoulders share body motion; solve only the two rigid arm
   // bones so palms stay on the receiver and foregrip throughout the gait.
   // viewmodel: in first person the carbine and both hands ride higher and closer, so they sit in the lower view.
-  const vm = options.viewmodel ? 1 : 0, vx = 0.035 * vm, vy = 0.24 * vm, vz = 0.06 * vm;
+  const vm = options.viewmodel ? 1 : 0, vx = 0.09 * vm, vy = 0.15 * vm, vz = 0.17 * vm;
   if (gun) { gun.position.set(0.085 + vx, 1.08 + vy, -0.03 - recoil * 0.09 + vz); gun.rotation.set(-recoil * 0.13, 0, 0); }
   rig.arms.forEach((arm) => {
     poseHumanArm(arm, (arm.side < 0 ? 0 : 0.085) + vx,
